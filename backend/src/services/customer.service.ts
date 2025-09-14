@@ -1,0 +1,346 @@
+import { prisma } from '../config/database';
+import { logger } from '../utils/logger';
+import { errors } from '../utils/errorHandler';
+import { redisUtils } from '../config/redis';
+import { MessageQueueService } from './messageQueue.service';
+
+export interface CreateCustomerData {
+  email: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+}
+
+export interface UpdateCustomerData {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+}
+
+export interface CustomerFilters {
+  search?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  minSpent?: number;
+  maxSpent?: number;
+  minOrders?: number;
+  maxOrders?: number;
+  lastOrderAfter?: Date;
+  lastOrderBefore?: Date;
+}
+
+export class CustomerService {
+  static async createCustomer(data: CreateCustomerData): Promise<any> {
+    try {
+      // Check if customer already exists
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { email: data.email },
+      });
+
+      if (existingCustomer) {
+        throw errors.CONFLICT('Customer with this email already exists');
+      }
+
+      // Create customer
+      const customer = await prisma.customer.create({
+        data: {
+          email: data.email,
+          name: data.name,
+          phone: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          country: data.country,
+          postalCode: data.postalCode,
+        },
+      });
+
+      logger.info('Customer created successfully:', { customerId: customer.id, email: customer.email });
+
+      return customer;
+    } catch (error) {
+      logger.error('Failed to create customer:', error);
+      throw error;
+    }
+  }
+
+  static async createCustomerAsync(data: CreateCustomerData): Promise<void> {
+    try {
+      await MessageQueueService.addToQueue('customer_ingest', {
+        type: 'create',
+        data,
+        timestamp: new Date().toISOString(),
+      });
+
+      logger.info('Customer creation queued:', { email: data.email });
+    } catch (error) {
+      logger.error('Failed to queue customer creation:', error);
+      throw error;
+    }
+  }
+
+  static async getCustomerById(id: string): Promise<any> {
+    try {
+      const customer = await prisma.customer.findUnique({
+        where: { id },
+        include: {
+          orders: {
+            select: {
+              id: true,
+              orderNumber: true,
+              totalAmount: true,
+              status: true,
+              orderDate: true,
+            },
+            orderBy: {
+              orderDate: 'desc',
+            },
+            take: 10,
+          },
+        },
+      });
+
+      if (!customer) {
+        throw errors.NOT_FOUND('Customer not found');
+      }
+
+      return customer;
+    } catch (error) {
+      logger.error('Failed to get customer by ID:', error);
+      throw error;
+    }
+  }
+
+  static async getCustomers(
+    page: number = 1,
+    limit: number = 10,
+    filters: CustomerFilters = {},
+    sortBy: string = 'createdAt',
+    sortOrder: 'asc' | 'desc' = 'desc'
+  ): Promise<{ customers: any[]; total: number; page: number; limit: number }> {
+    try {
+      const where: any = {};
+
+      // Apply filters
+      if (filters.search) {
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { email: { contains: filters.search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (filters.city) {
+        where.city = { contains: filters.city, mode: 'insensitive' };
+      }
+
+      if (filters.state) {
+        where.state = { contains: filters.state, mode: 'insensitive' };
+      }
+
+      if (filters.country) {
+        where.country = { contains: filters.country, mode: 'insensitive' };
+      }
+
+      if (filters.minSpent !== undefined || filters.maxSpent !== undefined) {
+        where.totalSpent = {};
+        if (filters.minSpent !== undefined) {
+          where.totalSpent.gte = filters.minSpent;
+        }
+        if (filters.maxSpent !== undefined) {
+          where.totalSpent.lte = filters.maxSpent;
+        }
+      }
+
+      if (filters.minOrders !== undefined || filters.maxOrders !== undefined) {
+        where.totalOrders = {};
+        if (filters.minOrders !== undefined) {
+          where.totalOrders.gte = filters.minOrders;
+        }
+        if (filters.maxOrders !== undefined) {
+          where.totalOrders.lte = filters.maxOrders;
+        }
+      }
+
+      if (filters.lastOrderAfter || filters.lastOrderBefore) {
+        where.lastOrderAt = {};
+        if (filters.lastOrderAfter) {
+          where.lastOrderAt.gte = filters.lastOrderAfter;
+        }
+        if (filters.lastOrderBefore) {
+          where.lastOrderAt.lte = filters.lastOrderBefore;
+        }
+      }
+
+      const [customers, total] = await Promise.all([
+        prisma.customer.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { [sortBy]: sortOrder },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true,
+            city: true,
+            state: true,
+            country: true,
+            totalSpent: true,
+            totalOrders: true,
+            lastOrderAt: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }),
+        prisma.customer.count({ where }),
+      ]);
+
+      return {
+        customers,
+        total,
+        page,
+        limit,
+      };
+    } catch (error) {
+      logger.error('Failed to get customers:', error);
+      throw error;
+    }
+  }
+
+  static async updateCustomer(id: string, data: UpdateCustomerData): Promise<any> {
+    try {
+      const customer = await prisma.customer.update({
+        where: { id },
+        data,
+      });
+
+      logger.info('Customer updated successfully:', { customerId: id });
+
+      return customer;
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw errors.NOT_FOUND('Customer not found');
+      }
+      logger.error('Failed to update customer:', error);
+      throw error;
+    }
+  }
+
+  static async deleteCustomer(id: string): Promise<void> {
+    try {
+      await prisma.customer.delete({
+        where: { id },
+      });
+
+      logger.info('Customer deleted successfully:', { customerId: id });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw errors.NOT_FOUND('Customer not found');
+      }
+      logger.error('Failed to delete customer:', error);
+      throw error;
+    }
+  }
+
+  static async getCustomerStats(): Promise<any> {
+    try {
+      const cacheKey = 'customer_stats';
+      const cachedStats = await redisUtils.get(cacheKey);
+
+      if (cachedStats) {
+        return cachedStats;
+      }
+
+      const [
+        totalCustomers,
+        totalSpent,
+        avgOrderValue,
+        customersByCity,
+        customersByCountry,
+        recentCustomers,
+      ] = await Promise.all([
+        prisma.customer.count(),
+        prisma.customer.aggregate({
+          _sum: { totalSpent: true },
+        }),
+        prisma.customer.aggregate({
+          _avg: { totalSpent: true },
+        }),
+        prisma.customer.groupBy({
+          by: ['city'],
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 10,
+        }),
+        prisma.customer.groupBy({
+          by: ['country'],
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 10,
+        }),
+        prisma.customer.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+          },
+        }),
+      ]);
+
+      const stats = {
+        totalCustomers,
+        totalSpent: totalSpent._sum.totalSpent || 0,
+        avgOrderValue: avgOrderValue._avg.totalSpent || 0,
+        customersByCity,
+        customersByCountry,
+        recentCustomers,
+      };
+
+      // Cache for 5 minutes
+      await redisUtils.set(cacheKey, stats, 300);
+
+      return stats;
+    } catch (error) {
+      logger.error('Failed to get customer stats:', error);
+      throw error;
+    }
+  }
+
+  static async searchCustomers(query: string, limit: number = 10): Promise<any[]> {
+    try {
+      const customers = await prisma.customer.findMany({
+        where: {
+          OR: [
+            { name: { contains: query, mode: 'insensitive' } },
+            { email: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          totalSpent: true,
+          totalOrders: true,
+        },
+      });
+
+      return customers;
+    } catch (error) {
+      logger.error('Failed to search customers:', error);
+      throw error;
+    }
+  }
+}

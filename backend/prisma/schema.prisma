@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  googleId  String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  segments     Segment[]
+  campaigns    Campaign[]
+  communicationLogs CommunicationLog[]
+
+  @@map("users")
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  totalSpent  Decimal  @default(0) @db.Decimal(10, 2)
+  totalOrders Int      @default(0)
+  lastOrderAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  orders            Order[]
+  segmentCustomers  SegmentCustomer[]
+  communicationLogs CommunicationLog[]
+
+  @@map("customers")
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  customerId String
+  orderNumber String  @unique
+  totalAmount Decimal @db.Decimal(10, 2)
+  status     String   // pending, completed, cancelled, refunded
+  orderDate  DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model Segment {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  rules        Json     // Flexible rule structure
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customers SegmentCustomer[]
+  campaigns Campaign[]
+
+  @@map("segments")
+}
+
+model SegmentCustomer {
+  id         String   @id @default(cuid())
+  segmentId  String
+  customerId String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  segment  Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([segmentId, customerId])
+  @@map("segment_customers")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  message     String
+  segmentId   String
+  userId      String
+  status      String   // draft, scheduled, running, completed, paused, cancelled
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment  Segment           @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  communicationLogs CommunicationLog[]
+
+  @@map("campaigns")
+}
+
+model CommunicationLog {
+  id           String   @id @default(cuid())
+  campaignId   String
+  customerId   String
+  userId       String
+  message      String
+  status       String   // pending, sent, delivered, failed, bounced
+  vendorId     String?  // External vendor reference
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  failedAt     DateTime?
+  failureReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("communication_logs")
+}
+
+model MessageQueue {
+  id        String   @id @default(cuid())
+  type      String   // customer_ingest, order_ingest, campaign_process, delivery_send, receipt_process
+  payload   Json
+  status    String   // pending, processing, completed, failed
+  attempts  Int      @default(0)
+  maxAttempts Int    @default(3)
+  error     String?
+  processedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("message_queue")
+}
+
+model AIIntegration {
+  id          String   @id @default(cuid())
+  type        String   // rule_parser, message_suggestion, performance_summary, scheduling_suggestion, lookalike_generator, auto_tagging
+  input       Json
+  output      Json
+  model       String
+  tokens      Int?
+  cost        Decimal? @db.Decimal(10, 4)
+  createdAt   DateTime @default(now())
+
+  @@map("ai_integrations")
+}
