@@ -14,13 +14,13 @@ export const prisma = globalThis.__prisma || new PrismaClient({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env['NODE_ENV'] !== 'production') {
   globalThis.__prisma = prisma;
 }
 
 // Log database queries in development
-prisma.$on('query', (e) => {
-  if (process.env.NODE_ENV === 'development') {
+(prisma as any).$on('query', (e: any) => {
+  if (process.env['NODE_ENV'] === 'development') {
     logger.debug('Query: ' + e.query);
     logger.debug('Params: ' + e.params);
     logger.debug('Duration: ' + e.duration + 'ms');
@@ -28,7 +28,7 @@ prisma.$on('query', (e) => {
 });
 
 // Handle database connection errors
-prisma.$on('error', (e) => {
+(prisma as any).$on('error', (e: any) => {
   logger.error('Database error:', e);
 });
 

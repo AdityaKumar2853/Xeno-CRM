@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { errors } from './errorHandler';
 
 export const validate = (schema: Joi.ObjectSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.body, {
       abortEarly: false,
       allowUnknown: false,
@@ -23,7 +23,7 @@ export const validate = (schema: Joi.ObjectSchema) => {
 };
 
 export const validateQuery = (schema: Joi.ObjectSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.query, {
       abortEarly: false,
       allowUnknown: false,
@@ -43,7 +43,7 @@ export const validateQuery = (schema: Joi.ObjectSchema) => {
 };
 
 export const validateParams = (schema: Joi.ObjectSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.params, {
       abortEarly: false,
       allowUnknown: false,

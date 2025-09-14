@@ -52,7 +52,6 @@ if (config.nodeEnv !== 'production') {
 
 // Create logs directory if it doesn't exist
 import { mkdirSync } from 'fs';
-import { dirname } from 'path';
 
 try {
   mkdirSync('logs', { recursive: true });

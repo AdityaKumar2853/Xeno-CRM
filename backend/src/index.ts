@@ -11,6 +11,8 @@ import { logger } from './utils/logger';
 
 // Import routes
 import authRoutes from './api/auth/auth.routes';
+import customerRoutes from './api/customers/customers.routes';
+import orderRoutes from './api/orders/orders.routes';
 import ingestRoutes from './api/ingest/ingest.routes';
 import segmentsRoutes from './api/segments/segments.routes';
 import campaignsRoutes from './api/campaigns/campaigns.routes';
@@ -62,6 +64,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/ingest', ingestRoutes);
 app.use('/api/segments', segmentsRoutes);
 app.use('/api/campaigns', campaignsRoutes);

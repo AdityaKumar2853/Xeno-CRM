@@ -52,7 +52,7 @@ export class CampaignProcessor {
       logger.info('Processing campaign message:', { messageId: message.id });
 
       try {
-        const { campaignId, userId, segmentId, message: campaignMessage, customerIds } = message.payload;
+        const { campaignId, userId, message: campaignMessage, customerIds } = message.payload;
 
         // Update campaign status to running
         await prisma.campaign.update({
@@ -64,7 +64,7 @@ export class CampaignProcessor {
         });
 
         // Create communication logs for each customer
-        const communicationLogs = await Promise.all(
+        await Promise.all(
           customerIds.map(async (customerId: string) => {
             return await DeliveryService.sendMessage(
               campaignId,
@@ -91,7 +91,7 @@ export class CampaignProcessor {
           customerCount: customerIds.length 
         });
       } catch (error) {
-        logger.error('Failed to process campaign message:', { messageId: message.id, error });
+        logger.error('Failed to process campaign message:', { messageId: message.id, error: error as Error });
         
         // Update campaign status to failed
         try {
@@ -105,10 +105,10 @@ export class CampaignProcessor {
           logger.error('Failed to update campaign status to failed:', updateError);
         }
 
-        await MessageQueueService.markMessageFailed(message.id, error.message);
+        await MessageQueueService.markMessageFailed(message.id, (error as Error).message);
       }
     } catch (error) {
-      logger.error('Error processing campaign messages:', error);
+      logger.error('Error processing campaign messages:', error as Error);
     }
   }
 
@@ -122,7 +122,7 @@ export class CampaignProcessor {
         failed: stats.failed,
       };
     } catch (error) {
-      logger.error('Failed to get campaign processor status:', error);
+      logger.error('Failed to get campaign processor status:', error as Error);
       return {
         running: this.isRunning,
         processed: 0,

@@ -63,7 +63,7 @@ export class OrderService {
 
       return order;
     } catch (error) {
-      logger.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error as Error);
       throw error;
     }
   }
@@ -78,7 +78,7 @@ export class OrderService {
 
       logger.info('Order creation queued:', { orderNumber: data.orderNumber });
     } catch (error) {
-      logger.error('Failed to queue order creation:', error);
+      logger.error('Failed to queue order creation:', error as Error);
       throw error;
     }
   }
@@ -105,20 +105,33 @@ export class OrderService {
 
       return order;
     } catch (error) {
-      logger.error('Failed to get order by ID:', error);
+      logger.error('Failed to get order by ID:', error as Error);
       throw error;
     }
   }
 
   static async getOrders(
-    page: number = 1,
-    limit: number = 10,
-    filters: OrderFilters = {},
-    sortBy: string = 'orderDate',
-    sortOrder: 'asc' | 'desc' = 'desc'
+    options: {
+      page: number;
+      limit: number;
+      search?: string;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
   ): Promise<{ orders: any[]; total: number; page: number; limit: number }> {
+    const { page, limit, search, sortBy, sortOrder } = options;
+    const filters: OrderFilters = {};
     try {
       const where: any = {};
+
+      // Apply search filter
+      if (search) {
+        where.OR = [
+          { orderNumber: { contains: search, mode: 'insensitive' } },
+          { customer: { name: { contains: search, mode: 'insensitive' } } },
+          { customer: { email: { contains: search, mode: 'insensitive' } } },
+        ];
+      }
 
       // Apply filters
       if (filters.customerId) {
@@ -175,7 +188,7 @@ export class OrderService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get orders:', error);
+      logger.error('Failed to get orders:', error as Error);
       throw error;
     }
   }
@@ -284,7 +297,7 @@ export class OrderService {
         monthlyRevenue,
       };
     } catch (error) {
-      logger.error('Failed to get order stats:', error);
+      logger.error('Failed to get order stats:', error as Error);
       throw error;
     }
   }
@@ -308,7 +321,7 @@ export class OrderService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get customer orders:', error);
+      logger.error('Failed to get customer orders:', error as Error);
       throw error;
     }
   }
@@ -348,7 +361,7 @@ export class OrderService {
         },
       });
     } catch (error) {
-      logger.error('Failed to update customer stats:', error);
+      logger.error('Failed to update customer stats:', error as Error);
     }
   }
 }

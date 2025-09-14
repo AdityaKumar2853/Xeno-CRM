@@ -9,8 +9,8 @@ import { errors } from '../utils/errorHandler';
 export interface UserPayload {
   id: string;
   email: string;
-  name?: string;
-  avatar?: string;
+  name: string;
+  avatar: string;
 }
 
 export interface GoogleUserInfo {
@@ -39,7 +39,7 @@ export class AuthService {
         id: payload.sub,
         email: payload.email!,
         name: payload.name!,
-        picture: payload.picture,
+        picture: payload.picture || '',
       };
     } catch (error) {
       logger.error('Google token verification failed:', error);
@@ -65,7 +65,7 @@ export class AuthService {
             where: { id: user.id },
             data: {
               googleId: googleUser.id,
-              avatar: googleUser.picture,
+              avatar: googleUser.picture || null,
             },
           });
         } else {
@@ -74,7 +74,7 @@ export class AuthService {
             data: {
               email: googleUser.email,
               name: googleUser.name,
-              avatar: googleUser.picture,
+              avatar: googleUser.picture || null,
               googleId: googleUser.id,
             },
           });
@@ -85,7 +85,7 @@ export class AuthService {
           where: { id: user.id },
           data: {
             name: googleUser.name,
-            avatar: googleUser.picture,
+            avatar: googleUser.picture || null,
           },
         });
       }
@@ -93,8 +93,8 @@ export class AuthService {
       return {
         id: user.id,
         email: user.email,
-        name: user.name || undefined,
-        avatar: user.avatar || undefined,
+        name: user.name || '',
+        avatar: user.avatar || '',
       };
     } catch (error) {
       logger.error('Failed to find or create user:', error);
@@ -105,7 +105,7 @@ export class AuthService {
   static generateToken(payload: UserPayload): string {
     return jwt.sign(payload, config.auth.jwtSecret, {
       expiresIn: config.auth.jwtExpiresIn,
-    });
+    } as jwt.SignOptions);
   }
 
   static verifyToken(token: string): UserPayload {
@@ -135,7 +135,12 @@ export class AuthService {
         },
       });
 
-      return user;
+      return {
+        id: user!.id,
+        email: user!.email,
+        name: user!.name || '',
+        avatar: user!.avatar || '',
+      };
     } catch (error) {
       logger.error('Failed to get user by ID:', error);
       return null;
@@ -147,8 +152,8 @@ export class AuthService {
       const user = await prisma.user.update({
         where: { id },
         data: {
-          name: data.name,
-          avatar: data.avatar,
+          name: data.name || null,
+          avatar: data.avatar || null,
         },
         select: {
           id: true,
@@ -158,7 +163,12 @@ export class AuthService {
         },
       });
 
-      return user;
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name || '',
+        avatar: user.avatar || '',
+      };
     } catch (error) {
       logger.error('Failed to update user:', error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to update user');

@@ -35,31 +35,43 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch dashboard data
-  const { data: customerStats } = useQuery('customerStats', customerAPI.getCustomerStats);
-  const { data: orderStats } = useQuery('orderStats', orderAPI.getOrderStats);
-  const { data: campaigns } = useQuery('campaigns', () => campaignAPI.getCampaigns({ limit: 1000 }));
+  const { data: customerStats } = useQuery('customerStats', customerAPI.getCustomerStats, {
+    retry: 1,
+    retryDelay: 1000,
+    onError: (error) => console.error('Failed to fetch customer stats:', error)
+  });
+  const { data: orderStats } = useQuery('orderStats', orderAPI.getOrderStats, {
+    retry: 1,
+    retryDelay: 1000,
+    onError: (error) => console.error('Failed to fetch order stats:', error)
+  });
+  const { data: campaigns } = useQuery('campaigns', () => campaignAPI.getCampaigns({ limit: 1000 }), {
+    retry: 1,
+    retryDelay: 1000,
+    onError: (error) => console.error('Failed to fetch campaigns:', error)
+  });
 
   useEffect(() => {
     if (customerStats && orderStats && campaigns) {
       setStats({
         customers: {
-          total: customerStats.data.totalCustomers,
-          totalSpent: customerStats.data.totalSpent,
-          avgOrderValue: customerStats.data.avgOrderValue,
+          total: customerStats.data?.totalCustomers || 0,
+          totalSpent: customerStats.data?.totalSpent || 0,
+          avgOrderValue: customerStats.data?.avgOrderValue || 0,
         },
         orders: {
-          total: orderStats.data.totalOrders,
-          totalRevenue: orderStats.data.totalRevenue,
-          avgOrderValue: orderStats.data.avgOrderValue,
+          total: orderStats.data?.totalOrders || 0,
+          totalRevenue: orderStats.data?.totalRevenue || 0,
+          avgOrderValue: orderStats.data?.avgOrderValue || 0,
         },
         campaigns: {
-          total: campaigns.data.total,
-          running: campaigns.data.campaigns.filter((c: any) => c.status === 'running').length,
-          completed: campaigns.data.campaigns.filter((c: any) => c.status === 'completed').length,
+          total: campaigns.data?.total || 0,
+          running: campaigns.data?.campaigns?.filter((c: any) => c.status === 'running').length || 0,
+          completed: campaigns.data?.campaigns?.filter((c: any) => c.status === 'completed').length || 0,
         },
       });
-      setLoading(false);
     }
+    setLoading(false);
   }, [customerStats, orderStats, campaigns]);
 
   if (loading) {

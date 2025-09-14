@@ -82,11 +82,11 @@ export class ReceiptProcessor {
         await MessageQueueService.markMessageCompleted(message.id);
         logger.info('Receipt message queued for batch processing:', { messageId: message.id });
       } catch (error) {
-        logger.error('Failed to process receipt message:', { messageId: message.id, error });
-        await MessageQueueService.markMessageFailed(message.id, error.message);
+        logger.error('Failed to process receipt message:', { messageId: message.id, error: error as Error });
+        await MessageQueueService.markMessageFailed(message.id, (error as Error).message);
       }
     } catch (error) {
-      logger.error('Error processing receipt messages:', error);
+      logger.error('Error processing receipt messages:', error as Error);
     }
   }
 
@@ -107,7 +107,7 @@ export class ReceiptProcessor {
       await DeliveryService.processReceiptBatch(receipts);
       logger.info('Batch receipts processed successfully:', { count: receipts.length });
     } catch (error) {
-      logger.error('Failed to process batch receipts:', error);
+      logger.error('Failed to process batch receipts:', error as Error);
       
       // Retry individual receipts
       for (const receipt of receipts) {
@@ -131,7 +131,7 @@ export class ReceiptProcessor {
         pendingBatch: this.pendingReceipts.length,
       };
     } catch (error) {
-      logger.error('Failed to get receipt processor status:', error);
+      logger.error('Failed to get receipt processor status:', error as Error);
       return {
         running: this.isRunning,
         processed: 0,

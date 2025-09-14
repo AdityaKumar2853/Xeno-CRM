@@ -52,7 +52,7 @@ export class DeliveryService {
 
       return log.id;
     } catch (error) {
-      logger.error('Failed to queue message for delivery:', error);
+      logger.error('Failed to queue message for delivery:', error as Error);
       throw error;
     }
   }
@@ -111,7 +111,7 @@ export class DeliveryService {
         logger.error('Message delivery failed:', { logId, error: vendorResponse.error });
       }
     } catch (error) {
-      logger.error('Failed to process delivery:', error);
+      logger.error('Failed to process delivery:', error as Error);
       
       // Mark as failed
       try {
@@ -162,7 +162,7 @@ export class DeliveryService {
 
       logger.info('Delivery receipt processed:', { logId, vendorId, status });
     } catch (error) {
-      logger.error('Failed to process delivery receipt:', error);
+      logger.error('Failed to process delivery receipt:', error as Error);
       throw error;
     }
   }
@@ -177,7 +177,7 @@ export class DeliveryService {
 
       logger.info('Batch delivery receipts processed:', { count: receipts.length });
     } catch (error) {
-      logger.error('Failed to process batch delivery receipts:', error);
+      logger.error('Failed to process batch delivery receipts:', error as Error);
       throw error;
     }
   }
@@ -208,12 +208,12 @@ export class DeliveryService {
         message: response.data.message,
       };
     } catch (error) {
-      logger.error('Vendor API error:', error);
+      logger.error('Vendor API error:', error as Error);
       
       return {
         success: false,
         vendorId: '',
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -228,7 +228,6 @@ export class DeliveryService {
         totalFailed,
         totalPending,
         deliveryRate,
-        failureRate,
       ] = await Promise.all([
         prisma.communicationLog.count({
           where: { ...where, status: 'sent' },
@@ -265,7 +264,7 @@ export class DeliveryService {
         failureRate: totalProcessed > 0 ? (failedCount / totalProcessed) * 100 : 0,
       };
     } catch (error) {
-      logger.error('Failed to get delivery stats:', error);
+      logger.error('Failed to get delivery stats:', error as Error);
       throw error;
     }
   }
@@ -319,7 +318,7 @@ export class DeliveryService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get delivery logs:', error);
+      logger.error('Failed to get delivery logs:', error as Error);
       throw error;
     }
   }
@@ -359,7 +358,7 @@ export class DeliveryService {
 
       logger.info('Failed delivery queued for retry:', { logId });
     } catch (error) {
-      logger.error('Failed to retry delivery:', error);
+      logger.error('Failed to retry delivery:', error as Error);
       throw error;
     }
   }

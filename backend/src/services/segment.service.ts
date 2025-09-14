@@ -2,7 +2,6 @@ import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
 import { errors } from '../utils/errorHandler';
 import { SQLBuilder, RuleGroup, RuleCondition } from '../utils/sqlBuilder';
-import { redisUtils } from '../config/redis';
 
 export interface CreateSegmentData {
   name: string;
@@ -35,7 +34,7 @@ export class SegmentService {
       const segment = await prisma.segment.create({
         data: {
           name: data.name,
-          description: data.description,
+          description: data.description || null,
           rules: data.rules as any,
           userId: data.userId,
         },
@@ -45,7 +44,7 @@ export class SegmentService {
 
       return segment;
     } catch (error) {
-      logger.error('Failed to create segment:', error);
+      logger.error('Failed to create segment:', error as Error);
       throw error;
     }
   }
@@ -82,7 +81,7 @@ export class SegmentService {
 
       return segment;
     } catch (error) {
-      logger.error('Failed to get segment by ID:', error);
+      logger.error('Failed to get segment by ID:', error as Error);
       throw error;
     }
   }
@@ -125,7 +124,7 @@ export class SegmentService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get segments:', error);
+      logger.error('Failed to get segments:', error as Error);
       throw error;
     }
   }
@@ -163,7 +162,7 @@ export class SegmentService {
 
       return await this.getSegmentById(id, userId);
     } catch (error) {
-      logger.error('Failed to update segment:', error);
+      logger.error('Failed to update segment:', error as Error);
       throw error;
     }
   }
@@ -183,7 +182,7 @@ export class SegmentService {
 
       logger.info('Segment deleted successfully:', { segmentId: id, userId });
     } catch (error) {
-      logger.error('Failed to delete segment:', error);
+      logger.error('Failed to delete segment:', error as Error);
       throw error;
     }
   }
@@ -228,7 +227,7 @@ export class SegmentService {
         estimatedSize,
       };
     } catch (error) {
-      logger.error('Failed to preview segment:', error);
+      logger.error('Failed to preview segment:', error as Error);
       throw error;
     }
   }
@@ -247,7 +246,7 @@ export class SegmentService {
       }
 
       // Get customers matching the rules
-      const whereClause = SQLBuilder.buildWhereClause(segment.rules as RuleGroup | RuleCondition);
+      const whereClause = SQLBuilder.buildWhereClause(segment.rules as unknown as RuleGroup | RuleCondition);
       const matchingCustomers = await prisma.customer.findMany({
         where: whereClause,
         select: { id: true },
@@ -298,7 +297,7 @@ export class SegmentService {
         customersRemoved: customersToRemove.length,
       };
     } catch (error) {
-      logger.error('Failed to build segment:', error);
+      logger.error('Failed to build segment:', error as Error);
       throw error;
     }
   }
@@ -356,7 +355,7 @@ export class SegmentService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get segment customers:', error);
+      logger.error('Failed to get segment customers:', error as Error);
       throw error;
     }
   }
@@ -379,28 +378,26 @@ export class SegmentService {
         totalCustomers,
         avgSpent,
         totalSpent,
-        customersByCity,
-        customersByCountry,
         recentCustomers,
       ] = await Promise.all([
         prisma.segmentCustomer.count({ where: { segmentId } }),
         prisma.segmentCustomer.aggregate({
           where: { segmentId },
-          _avg: { customer: { totalSpent: true } },
-        }),
+          _avg: { customerId: true },
+        } as any),
         prisma.segmentCustomer.aggregate({
           where: { segmentId },
-          _sum: { customer: { totalSpent: true } },
-        }),
+          _sum: { customerId: true },
+        } as any),
         prisma.segmentCustomer.groupBy({
-          by: ['customer'],
+          by: ['customerId'],
           where: { segmentId },
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },
           take: 10,
         }),
         prisma.segmentCustomer.groupBy({
-          by: ['customer'],
+          by: ['customerId'],
           where: { segmentId },
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },
@@ -426,12 +423,12 @@ export class SegmentService {
 
       return {
         totalCustomers,
-        avgSpent: avgSpent._avg.customer?.totalSpent || 0,
-        totalSpent: totalSpent._sum.customer?.totalSpent || 0,
-        recentCustomers: recentCustomers.map(sc => sc.customer),
+        avgSpent: (avgSpent as any)._avg?.customerId || 0,
+        totalSpent: (totalSpent as any)._sum?.customerId || 0,
+        recentCustomers: recentCustomers.map(sc => sc.customerId),
       };
     } catch (error) {
-      logger.error('Failed to get segment stats:', error);
+      logger.error('Failed to get segment stats:', error as Error);
       throw error;
     }
   }
@@ -450,8 +447,8 @@ export class SegmentService {
 
       return { valid: true, errors: [] };
     } catch (error) {
-      logger.error('Failed to validate rules:', error);
-      return { valid: false, errors: [error.message] };
+      logger.error('Failed to validate rules:', error as Error);
+      return { valid: false, errors: [(error as Error).message] };
     }
   }
 
@@ -468,7 +465,7 @@ export class SegmentService {
         operators: SQLBuilder.getOperatorsForField(field),
       }));
     } catch (error) {
-      logger.error('Failed to get rule fields:', error);
+      logger.error('Failed to get rule fields:', error as Error);
       throw error;
     }
   }

@@ -12,6 +12,44 @@ export interface RuleGroup {
 }
 
 export class SQLBuilder {
+  static validateRule(rules: any): boolean {
+    try {
+      this.buildWhereClause(rules);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static getFieldType(field: string): string {
+    // Return field type based on field name
+    const fieldTypes: Record<string, string> = {
+      'email': 'string',
+      'name': 'string',
+      'phone': 'string',
+      'city': 'string',
+      'state': 'string',
+      'country': 'string',
+      'postalCode': 'string',
+      'totalSpent': 'number',
+      'totalOrders': 'number',
+      'lastOrderDate': 'date',
+      'createdAt': 'date',
+      'updatedAt': 'date',
+    };
+    return fieldTypes[field] || 'string';
+  }
+
+  static getOperatorsForField(field: string): string[] {
+    const fieldType = this.getFieldType(field);
+    const operators: Record<string, string[]> = {
+      'string': ['eq', 'ne', 'contains', 'startsWith', 'endsWith', 'in', 'notIn', 'isNull', 'isNotNull'],
+      'number': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'in', 'notIn', 'isNull', 'isNotNull'],
+      'date': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'isNull', 'isNotNull'],
+    };
+    return operators[fieldType] || operators['string'] || [];
+  }
+
   private static buildCondition(condition: RuleCondition): Prisma.CustomerWhereInput {
     const { field, operator, value } = condition;
 

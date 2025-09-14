@@ -49,12 +49,12 @@ export class CampaignService {
       const campaign = await prisma.campaign.create({
         data: {
           name: data.name,
-          description: data.description,
+          description: data.description || null,
           message: data.message,
           segmentId: data.segmentId,
           userId: data.userId,
           status: data.scheduledAt ? 'scheduled' : 'draft',
-          scheduledAt: data.scheduledAt,
+          scheduledAt: data.scheduledAt || null,
         },
       });
 
@@ -527,14 +527,14 @@ export class CampaignService {
           _count: { id: true },
         }),
         prisma.communicationLog.groupBy({
-          by: ['customer'],
+          by: ['customerId'],
           where: { campaignId: id },
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },
           take: 10,
         }),
         prisma.communicationLog.groupBy({
-          by: ['customer'],
+          by: ['customerId'],
           where: { campaignId: id },
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },

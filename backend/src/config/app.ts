@@ -4,56 +4,56 @@ dotenv.config();
 
 export const config = {
   // Server Configuration
-  port: parseInt(process.env.API_PORT || '3001'),
-  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env['API_PORT'] || '3001'),
+  nodeEnv: process.env['NODE_ENV'] || 'development',
   
   // Database Configuration
   database: {
-    url: process.env.DATABASE_URL || 'mysql://root:password@localhost:3306/mini_crm',
+    url: process.env['DATABASE_URL'] || 'mysql://root:password@localhost:3306/mini_crm',
   },
   
   // Redis Configuration
   redis: {
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD,
+    url: process.env['REDIS_URL'] || 'redis://localhost:6379',
+    host: process.env['REDIS_HOST'] || 'localhost',
+    port: parseInt(process.env['REDIS_PORT'] || '6379'),
+    password: process.env['REDIS_PASSWORD'],
   },
   
   // Authentication Configuration
   auth: {
-    jwtSecret: process.env.JWT_SECRET || 'your-jwt-secret-key',
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    jwtSecret: process.env['JWT_SECRET'] || 'your-jwt-secret-key',
+    jwtExpiresIn: process.env['JWT_EXPIRES_IN'] || '7d',
+    googleClientId: process.env['GOOGLE_CLIENT_ID'] || '',
+    googleClientSecret: process.env['GOOGLE_CLIENT_SECRET'] || '',
   },
   
   // External APIs
   apis: {
-    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-    vendorApiUrl: process.env.VENDOR_API_URL || 'http://localhost:3002',
+    frontendUrl: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+    vendorApiUrl: process.env['VENDOR_API_URL'] || 'http://localhost:3002',
   },
   
   // AI Configuration
   ai: {
-    openaiApiKey: process.env.OPENAI_API_KEY || '',
-    openaiModel: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+    openaiApiKey: process.env['OPENAI_API_KEY'] || '',
+    openaiModel: process.env['OPENAI_MODEL'] || 'gpt-3.5-turbo',
   },
   
   // Message Broker Configuration
   messageBroker: {
     kafka: {
-      brokers: process.env.KAFKA_BROKERS?.split(',') || ['localhost:9092'],
+      brokers: process.env['KAFKA_BROKERS']?.split(',') || ['localhost:9092'],
       clientId: 'mini-crm-backend',
     },
     rabbitmq: {
-      url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+      url: process.env['RABBITMQ_URL'] || 'amqp://localhost:5672',
     },
   },
   
   // Logging Configuration
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
+    level: process.env['LOG_LEVEL'] || 'info',
   },
   
   // Rate Limiting Configuration
@@ -64,7 +64,7 @@ export const config = {
   
   // CORS Configuration
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
     credentials: true,
   },
   

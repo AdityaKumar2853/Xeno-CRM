@@ -54,13 +54,13 @@ export class CustomerService {
       const customer = await prisma.customer.create({
         data: {
           email: data.email,
-          name: data.name,
-          phone: data.name,
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          country: data.country,
-          postalCode: data.postalCode,
+          name: data.name || null,
+          phone: data.phone || null,
+          address: data.address || null,
+          city: data.city || null,
+          state: data.state || null,
+          country: data.country || null,
+          postalCode: data.postalCode || null,
         },
       });
 
@@ -68,7 +68,7 @@ export class CustomerService {
 
       return customer;
     } catch (error) {
-      logger.error('Failed to create customer:', error);
+      logger.error('Failed to create customer:', error as Error);
       throw error;
     }
   }
@@ -83,7 +83,7 @@ export class CustomerService {
 
       logger.info('Customer creation queued:', { email: data.email });
     } catch (error) {
-      logger.error('Failed to queue customer creation:', error);
+      logger.error('Failed to queue customer creation:', error as Error);
       throw error;
     }
   }
@@ -115,18 +115,22 @@ export class CustomerService {
 
       return customer;
     } catch (error) {
-      logger.error('Failed to get customer by ID:', error);
+      logger.error('Failed to get customer by ID:', error as Error);
       throw error;
     }
   }
 
   static async getCustomers(
-    page: number = 1,
-    limit: number = 10,
-    filters: CustomerFilters = {},
-    sortBy: string = 'createdAt',
-    sortOrder: 'asc' | 'desc' = 'desc'
+    options: {
+      page: number;
+      limit: number;
+      search?: string;
+      sortBy: string;
+      sortOrder: 'asc' | 'desc';
+    }
   ): Promise<{ customers: any[]; total: number; page: number; limit: number }> {
+    const { page, limit, search, sortBy, sortOrder } = options;
+    const filters: CustomerFilters = { search };
     try {
       const where: any = {};
 
@@ -211,7 +215,7 @@ export class CustomerService {
         limit,
       };
     } catch (error) {
-      logger.error('Failed to get customers:', error);
+      logger.error('Failed to get customers:', error as Error);
       throw error;
     }
   }
@@ -313,7 +317,7 @@ export class CustomerService {
 
       return stats;
     } catch (error) {
-      logger.error('Failed to get customer stats:', error);
+      logger.error('Failed to get customer stats:', error as Error);
       throw error;
     }
   }
@@ -323,8 +327,8 @@ export class CustomerService {
       const customers = await prisma.customer.findMany({
         where: {
           OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { email: { contains: query, mode: 'insensitive' } },
+            { name: { contains: query } },
+            { email: { contains: query } },
           ],
         },
         take: limit,
@@ -339,7 +343,44 @@ export class CustomerService {
 
       return customers;
     } catch (error) {
-      logger.error('Failed to search customers:', error);
+      logger.error('Failed to search customers:', error as Error);
+      throw error;
+    }
+  }
+
+  static async getCustomerOrders(
+    customerId: string,
+    options: { page: number; limit: number }
+  ): Promise<{ orders: any[]; total: number; page: number; limit: number }> {
+    try {
+      const { page, limit } = options;
+      
+      const [orders, total] = await Promise.all([
+        prisma.order.findMany({
+          where: { customerId },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { orderDate: 'desc' },
+          select: {
+            id: true,
+            orderNumber: true,
+            totalAmount: true,
+            status: true,
+            orderDate: true,
+            createdAt: true,
+          },
+        }),
+        prisma.order.count({ where: { customerId } }),
+      ]);
+
+      return {
+        orders,
+        total,
+        page,
+        limit,
+      };
+    } catch (error) {
+      logger.error('Failed to get customer orders:', error as Error);
       throw error;
     }
   }

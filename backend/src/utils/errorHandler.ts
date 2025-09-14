@@ -33,7 +33,7 @@ export const errorHandler = (
   error: AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   let { statusCode = 500, message } = error;
 
@@ -79,7 +79,7 @@ export const errorHandler = (
   }
 
   // Don't leak error details in production
-  if (process.env.NODE_ENV === 'production' && !error.isOperational) {
+  if (process.env['NODE_ENV'] === 'production' && !error.isOperational) {
     message = 'Something went wrong';
   }
 
@@ -87,7 +87,7 @@ export const errorHandler = (
     success: false,
     error: {
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+      ...(process.env['NODE_ENV'] === 'development' && { stack: error.stack }),
     },
   });
 };

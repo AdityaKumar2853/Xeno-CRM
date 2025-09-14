@@ -7,6 +7,8 @@ WORKDIR /app
 # Install system dependencies
 RUN apk add --no-cache \
     dumb-init \
+    openssl \
+    libssl3 \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nextjs -u 1001
 

@@ -1,4 +1,3 @@
-import { prisma } from '../config/database';
 import { MessageQueueService } from '../services/messageQueue.service';
 import { CustomerService } from '../services/customer.service';
 import { OrderService } from '../services/order.service';
@@ -50,7 +49,7 @@ export class IngestConsumer {
       // Process order ingestion
       await this.processOrderIngest();
     } catch (error) {
-      logger.error('Error processing ingest messages:', error);
+      logger.error('Error processing ingest messages:', error as Error);
     }
   }
 
@@ -78,11 +77,11 @@ export class IngestConsumer {
         await MessageQueueService.markMessageCompleted(message.id);
         logger.info('Customer ingest message processed successfully:', { messageId: message.id });
       } catch (error) {
-        logger.error('Failed to process customer ingest message:', { messageId: message.id, error });
-        await MessageQueueService.markMessageFailed(message.id, error.message);
+        logger.error('Failed to process customer ingest message:', { messageId: message.id, error: error as Error });
+        await MessageQueueService.markMessageFailed(message.id, (error as Error).message);
       }
     } catch (error) {
-      logger.error('Error processing customer ingest:', error);
+      logger.error('Error processing customer ingest:', error as Error);
     }
   }
 
@@ -110,11 +109,11 @@ export class IngestConsumer {
         await MessageQueueService.markMessageCompleted(message.id);
         logger.info('Order ingest message processed successfully:', { messageId: message.id });
       } catch (error) {
-        logger.error('Failed to process order ingest message:', { messageId: message.id, error });
-        await MessageQueueService.markMessageFailed(message.id, error.message);
+        logger.error('Failed to process order ingest message:', { messageId: message.id, error: error as Error });
+        await MessageQueueService.markMessageFailed(message.id, (error as Error).message);
       }
     } catch (error) {
-      logger.error('Error processing order ingest:', error);
+      logger.error('Error processing order ingest:', error as Error);
     }
   }
 
@@ -129,7 +128,7 @@ export class IngestConsumer {
         failed: stats.failed + orderStats.failed,
       };
     } catch (error) {
-      logger.error('Failed to get ingest consumer status:', error);
+      logger.error('Failed to get ingest consumer status:', error as Error);
       return {
         running: this.isRunning,
         processed: 0,

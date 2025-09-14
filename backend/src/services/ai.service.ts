@@ -84,7 +84,7 @@ Examples:
 
       return result;
     } catch (error) {
-      logger.error('Failed to parse natural language to rules:', error);
+      logger.error('Failed to parse natural language to rules:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to parse natural language to rules');
     }
   }
@@ -138,7 +138,7 @@ Return a JSON object with this structure:
 
       return result;
     } catch (error) {
-      logger.error('Failed to generate message suggestions:', error);
+      logger.error('Failed to generate message suggestions:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to generate message suggestions');
     }
   }
@@ -232,7 +232,7 @@ Return a JSON object with this structure:
 
       return result;
     } catch (error) {
-      logger.error('Failed to generate performance summary:', error);
+      logger.error('Failed to generate performance summary:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to generate performance summary');
     }
   }
@@ -274,12 +274,12 @@ Return a JSON object with this structure:
       }, {} as Record<number, number>);
 
       const bestHour = Object.entries(hourCounts).reduce((a, b) => 
-        hourCounts[Number(a[0])] > hourCounts[Number(b[0])] ? a : b
-      )[0];
+        (hourCounts[Number(a[0])] || 0) > (hourCounts[Number(b[0])] || 0) ? a : b
+      )[0] as string;
 
       const bestDay = Object.entries(dayCounts).reduce((a, b) => 
-        dayCounts[Number(a[0])] > dayCounts[Number(b[0])] ? a : b
-      )[0];
+        (dayCounts[Number(a[0])] || 0) > (dayCounts[Number(b[0])] || 0) ? a : b
+      )[0] as string;
 
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       
@@ -289,7 +289,7 @@ Return a JSON object with this structure:
         confidence: 0.8,
       };
     } catch (error) {
-      logger.error('Failed to suggest optimal scheduling:', error);
+      logger.error('Failed to suggest optimal scheduling:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to suggest optimal scheduling');
     }
   }
@@ -318,16 +318,6 @@ Return a JSON object with this structure:
       const avgSpent = customers.reduce((sum, c) => sum + Number(c.totalSpent), 0) / customers.length;
       const avgOrders = customers.reduce((sum, c) => sum + c.totalOrders, 0) / customers.length;
       
-      const cities = customers.map(c => c.city).filter(Boolean);
-      const countries = customers.map(c => c.country).filter(Boolean);
-      
-      const mostCommonCity = cities.reduce((a, b, i, arr) => 
-        arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-      );
-      
-      const mostCommonCountry = countries.reduce((a, b, i, arr) => 
-        arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-      );
 
       // Generate lookalike rules
       const rules: RuleGroup = {
@@ -339,13 +329,6 @@ Return a JSON object with this structure:
         ],
       };
 
-      if (mostCommonCity) {
-        rules.conditions.push({ field: 'city', operator: 'eq', value: mostCommonCity });
-      }
-
-      if (mostCommonCountry) {
-        rules.conditions.push({ field: 'country', operator: 'eq', value: mostCommonCountry });
-      }
 
       const description = `Lookalike audience based on customers with similar spending patterns (₹${avgSpent.toFixed(0)} average) and order frequency (${avgOrders.toFixed(1)} orders)`;
 
@@ -355,7 +338,7 @@ Return a JSON object with this structure:
         confidence: 0.85,
       };
     } catch (error) {
-      logger.error('Failed to generate lookalike audience:', error);
+      logger.error('Failed to generate lookalike audience:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to generate lookalike audience');
     }
   }
@@ -429,7 +412,7 @@ Return a JSON object with this structure:
 
       return result;
     } catch (error) {
-      logger.error('Failed to auto-tag campaign:', error);
+      logger.error('Failed to auto-tag campaign:', error as Error);
       throw errors.INTERNAL_SERVER_ERROR('Failed to auto-tag campaign');
     }
   }
@@ -452,7 +435,7 @@ Return a JSON object with this structure:
         },
       });
     } catch (error) {
-      logger.error('Failed to log AI usage:', error);
+      logger.error('Failed to log AI usage:', error as Error);
     }
   }
 }
