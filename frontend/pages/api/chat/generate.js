@@ -48,12 +48,7 @@ User message: ${message}`;
         },
       });
     } catch (error) {
-      console.error('❌ Gemini API error:', {
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-        name: error.name,
-      });
+      console.error('❌ Gemini API error:', error.message);
       
       res.status(500).json({
         success: false,

@@ -87,12 +87,7 @@ export default async function handler(req, res) {
       res.status(405).json({ success: false, error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('❌ Segment API error:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-      name: error.name,
-    });
+    console.error('❌ Segment API error:', error.message);
     res.status(500).json({
       success: false,
       error: { 

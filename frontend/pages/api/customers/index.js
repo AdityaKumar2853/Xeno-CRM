@@ -21,8 +21,8 @@ export default async function handler(req, res) {
         
         const where = search ? {
           OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search } },
+            { email: { contains: search } },
           ],
         } : {};
 
@@ -47,12 +47,7 @@ export default async function handler(req, res) {
           },
         });
       } catch (dbError) {
-        console.error('❌ Database error in customers API:', {
-          message: dbError.message,
-          code: dbError.code,
-          stack: dbError.stack,
-          name: dbError.name,
-        });
+        console.error('❌ Database error in customers API:', dbError.message);
         
         // Return the actual error instead of empty data
         res.status(500).json({
@@ -119,12 +114,7 @@ export default async function handler(req, res) {
       res.status(405).json({ success: false, error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('❌ Customer API error:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-      name: error.name,
-    });
+    console.error('❌ Customer API error:', error.message);
     res.status(500).json({
       success: false,
       error: { 

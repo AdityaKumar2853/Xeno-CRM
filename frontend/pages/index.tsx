@@ -50,36 +50,16 @@ const Dashboard: React.FC = () => {
     onError: (error) => console.error('Failed to fetch campaigns:', error)
   });
 
-  console.log('API Query Status:', {
-    customerStats: { data: customerStats, error: customerError },
-    orderStats: { data: orderStats, error: orderError },
-    campaigns: { data: campaigns, error: campaignError }
-  });
-  
-  console.log('Raw API Data:', {
-    customerStatsData: customerStats,
-    orderStatsData: orderStats,
-    campaignsData: campaigns
-  });
-  
-  // Let's see the actual structure of the API responses
-  if (customerStats) {
-    console.log('Customer Stats Structure:', JSON.stringify(customerStats, null, 2));
-  }
-  if (orderStats) {
-    console.log('Order Stats Structure:', JSON.stringify(orderStats, null, 2));
-  }
-  if (campaigns) {
-    console.log('Campaigns Structure:', JSON.stringify(campaigns, null, 2));
+  // Debug logging for development only
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Dashboard API Status:', {
+      customerStats: !!customerStats,
+      orderStats: !!orderStats,
+      campaigns: !!campaigns
+    });
   }
 
   useEffect(() => {
-    console.log('Dashboard data:', {
-      customerStats: customerStats?.data?.data,
-      orderStats: orderStats?.data?.data,
-      campaigns: campaigns?.data?.data
-    });
-
     const newStats = {
       customers: {
         total: customerStats?.data?.data?.totalCustomers || 0,
@@ -98,7 +78,6 @@ const Dashboard: React.FC = () => {
       },
     };
 
-    console.log('Setting stats:', JSON.stringify(newStats, null, 2));
     setStats(newStats);
     setLoading(false);
   }, [customerStats, orderStats, campaigns]);

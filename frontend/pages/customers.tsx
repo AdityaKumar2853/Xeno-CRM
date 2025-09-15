@@ -151,7 +151,6 @@ const Customers: React.FC = () => {
   };
 
   const handleAddCustomer = () => {
-    console.log('Add customer button clicked');
     resetForm();
     setShowModal(true);
   };
@@ -186,17 +185,13 @@ const Customers: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with data:', formData);
-    console.log('Current customers before mutation:', customersData);
     
     if (editingCustomer) {
-      console.log('Updating customer:', editingCustomer.id);
       updateCustomerMutation.mutate({
         id: editingCustomer.id,
         data: formData,
       });
     } else {
-      console.log('Creating new customer');
       createCustomerMutation.mutate(formData);
     }
   };
