@@ -105,10 +105,12 @@ const Campaigns: React.FC = () => {
 
   // Fetch segments for dropdown
   const { data: segments, error: segmentsError, isLoading: segmentsLoading } = useQuery(
-    ['segments'],
+    ['segments-dropdown'],
     () => segmentAPI.getSegments({ page: 1, limit: 100 }),
     {
       retry: 1,
+      staleTime: 0, // Always fetch fresh data
+      cacheTime: 0, // Don't cache
       onError: (error) => {
         console.error('Failed to fetch segments:', error);
       }
