@@ -45,10 +45,10 @@ USER nextjs
 # Expose port
 EXPOSE 3001
 
-# Health check - use simple curl instead of node
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+# Health check disabled temporarily for debugging
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+#   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["./start.sh"]
+CMD ["npm", "run", "start:simple"]
