@@ -18,7 +18,7 @@ export default function handler(req, res) {
           id: 1,
           name: 'Test User',
           email: 'test@example.com',
-          avatar: 'https://via.placeholder.com/150'
+          avatar: 'https://ui-avatars.com/api/?name=Test+User&background=3b82f6&color=ffffff&size=150'
         },
         valid: true,
       },

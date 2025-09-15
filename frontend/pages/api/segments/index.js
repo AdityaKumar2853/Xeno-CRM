@@ -1,37 +1,65 @@
+import { dataStore } from '../../../lib/dataStore';
+
 export default function handler(req, res) {
-  if (req.method === 'GET') {
-    res.status(200).json({
-      success: true,
-      data: [
-        {
-          id: 1,
-          name: 'High Value Customers',
-          rules: 'total_spend > 1000',
-          customerCount: 45,
-          createdAt: '2024-01-10'
-        },
-        {
-          id: 2,
-          name: 'Inactive Customers',
-          rules: 'last_purchase_date < today - 90',
-          customerCount: 23,
-          createdAt: '2024-01-12'
-        }
-      ]
-    });
-  } else if (req.method === 'POST') {
-    const { name, rules } = req.body;
-    res.status(201).json({
-      success: true,
-      data: {
-        id: Date.now(),
-        name,
-        rules,
-        customerCount: Math.floor(Math.random() * 100),
-        createdAt: new Date().toISOString().split('T')[0]
+  try {
+    if (req.method === 'GET') {
+      const segments = dataStore.getSegments();
+      res.status(200).json({
+        success: true,
+        data: segments
+      });
+    } else if (req.method === 'POST') {
+      const { name, rules } = req.body;
+      
+      if (!name || !rules) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Name and rules are required' }
+        });
       }
+
+      const newSegment = dataStore.createSegment({ name, rules });
+      res.status(201).json({
+        success: true,
+        data: newSegment
+      });
+    } else if (req.method === 'PUT') {
+      const { id, ...updateData } = req.body;
+      const updatedSegment = dataStore.updateSegment(id, updateData);
+      
+      if (updatedSegment) {
+        res.status(200).json({
+          success: true,
+          data: updatedSegment
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          error: { message: 'Segment not found' }
+        });
+      }
+    } else if (req.method === 'DELETE') {
+      const { id } = req.query;
+      const deletedSegment = dataStore.deleteSegment(id);
+      
+      if (deletedSegment) {
+        res.status(200).json({
+          success: true,
+          data: deletedSegment
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          error: { message: 'Segment not found' }
+        });
+      }
+    } else {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
     });
-  } else {
-    res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 }

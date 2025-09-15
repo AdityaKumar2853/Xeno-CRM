@@ -1,11 +1,16 @@
+import { dataStore } from '../../../lib/dataStore';
+
 export default function handler(req, res) {
-  res.status(200).json({
-    success: true,
-    data: {
-      totalOrders: 320,
-      totalRevenue: 45000,
-      averageOrderValue: 140.63,
-      pendingOrders: 15
-    }
-  });
+  try {
+    const stats = dataStore.getOrderStats();
+    res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch order statistics' }
+    });
+  }
 }

@@ -17,7 +17,7 @@ export default function handler(req, res) {
           id: 1,
           name: 'Test User',
           email: 'test@example.com',
-          avatar: 'https://via.placeholder.com/150'
+          avatar: 'https://ui-avatars.com/api/?name=Test+User&background=3b82f6&color=ffffff&size=150'
         },
       },
     });
@@ -31,7 +31,7 @@ export default function handler(req, res) {
           id: 1,
           name: name || 'Test User',
           email: 'test@example.com',
-          avatar: avatar || 'https://via.placeholder.com/150'
+          avatar: avatar || 'https://ui-avatars.com/api/?name=Test+User&background=3b82f6&color=ffffff&size=150'
         },
       },
     });
