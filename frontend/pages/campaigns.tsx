@@ -115,11 +115,6 @@ const Campaigns: React.FC = () => {
     }
   );
 
-  // Debug logging for segments
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Segments query result:', { segments, segmentsError, segmentsLoading });
-    console.log('Segments data structure:', segments?.data?.data);
-  }
 
   // Show loading until client-side hydration is complete
   if (!isClient) {
