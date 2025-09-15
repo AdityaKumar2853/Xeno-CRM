@@ -1,5 +1,4 @@
 # Use Node.js 18 Alpine as base image
-# Updated for Railway deployment - includes dev dependencies for build
 FROM node:18-alpine
 
 # Set working directory
@@ -10,10 +9,11 @@ RUN apk add --no-cache \
     dumb-init \
     openssl \
     libssl3 \
+    wget \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nextjs -u 1001
 
-# Copy package files
+# Copy package files first for better caching
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
 
@@ -22,6 +22,10 @@ RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY backend/ .
+
+# Copy and make startup script executable
+COPY backend/start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -41,10 +45,10 @@ USER nextjs
 # Expose port
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+# Health check - use simple curl instead of node
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "start"]
+CMD ["./start.sh"]

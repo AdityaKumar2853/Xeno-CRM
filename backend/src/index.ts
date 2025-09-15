@@ -78,7 +78,12 @@ app.get('/api/health', (req, res) => {
 
 // Simple health check for Railway
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+  console.log('Health check requested at:', new Date().toISOString());
+  res.status(200).json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // API routes
@@ -147,10 +152,13 @@ const startServer = async () => {
     ]);
 
     // Start server
-    const server = app.listen(config.port, () => {
+    const server = app.listen(config.port, '0.0.0.0', () => {
       logger.info(`Server running on port ${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
       logger.info(`API Documentation: http://localhost:${config.port}/api-docs`);
+      logger.info(`Health check: http://0.0.0.0:${config.port}/health`);
+      console.log(`🚀 Xeno CRM Backend started successfully on port ${config.port}`);
+      console.log(`🔍 Health check: http://localhost:${config.port}/health`);
     });
 
     // Handle server errors
