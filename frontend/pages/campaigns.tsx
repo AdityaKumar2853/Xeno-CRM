@@ -140,7 +140,7 @@ const Campaigns: React.FC = () => {
     );
   }
 
-  const campaignsData = campaigns?.data?.data?.campaigns || [];
+  const campaignsData = campaigns?.data?.data || [];
 
   // Helper functions
   const resetForm = () => {

@@ -2,9 +2,9 @@
 class DataStore {
   constructor() {
     this.customers = [
-      { id: 1, name: 'John Doe', email: 'john@example.com', phone: '+1234567890', totalSpend: 1200, createdAt: '2024-01-15' },
-      { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '+1234567891', totalSpend: 800, createdAt: '2024-01-14' },
-      { id: 3, name: 'Bob Johnson', email: 'bob@example.com', phone: '+1234567892', totalSpend: 1500, createdAt: '2024-01-13' }
+      { id: 1, name: 'John Doe', email: 'john@example.com', phone: '+1234567890', totalSpend: 1200, createdAt: '2024-01-15', avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=ffffff&size=150' },
+      { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '+1234567891', totalSpend: 800, createdAt: '2024-01-14', avatar: 'https://ui-avatars.com/api/?name=Jane+Smith&background=10b981&color=ffffff&size=150' },
+      { id: 3, name: 'Bob Johnson', email: 'bob@example.com', phone: '+1234567892', totalSpend: 1500, createdAt: '2024-01-13', avatar: 'https://ui-avatars.com/api/?name=Bob+Johnson&background=8b5cf6&color=ffffff&size=150' }
     ];
     
     this.orders = [
@@ -38,7 +38,8 @@ class DataStore {
       id: Date.now(),
       ...customerData,
       totalSpend: 0,
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(customerData.name || 'Customer')}&background=${Math.floor(Math.random()*16777215).toString(16)}&color=ffffff&size=150`
     };
     this.customers.push(newCustomer);
     return newCustomer;

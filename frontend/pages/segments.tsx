@@ -125,7 +125,7 @@ const Segments: React.FC = () => {
     );
   }
 
-  const segmentsData = segments?.data?.data?.segments || [];
+  const segmentsData = segments?.data?.data || [];
 
   // Helper functions
   const resetForm = () => {

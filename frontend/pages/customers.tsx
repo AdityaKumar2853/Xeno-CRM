@@ -133,7 +133,7 @@ const Customers: React.FC = () => {
     );
   }
 
-  const customersData = customers?.data?.data?.customers || [];
+  const customersData = customers?.data?.data || [];
 
   // Helper functions
   const resetForm = () => {

@@ -126,7 +126,7 @@ const Orders: React.FC = () => {
     );
   }
 
-  const ordersData = orders?.data?.data?.orders || [];
+  const ordersData = orders?.data?.data || [];
   
   // Debug logging
   console.log('Orders query result:', orders);
