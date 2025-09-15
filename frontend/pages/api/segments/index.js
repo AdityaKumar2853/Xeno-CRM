@@ -1,6 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Create Prisma client with Railway database URL
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || 'mysql://root:QUmiFeNSoJyPtbsaODxZNiqZBxbWalrS@yamanote.proxy.rlwy.net:23968/railway'
+    }
+  }
+});
 
 export default async function handler(req, res) {
   try {
@@ -11,7 +18,7 @@ export default async function handler(req, res) {
       const where = search ? {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
-          { rules: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
         ],
       } : {};
 
@@ -36,7 +43,7 @@ export default async function handler(req, res) {
         },
       });
     } else if (req.method === 'POST') {
-      const { name, rules } = req.body;
+      const { name, description, rules, userId } = req.body;
       
       if (!name || !rules) {
         return res.status(400).json({
@@ -45,14 +52,29 @@ export default async function handler(req, res) {
         });
       }
 
-      // Calculate customer count based on rules (simplified)
-      const customerCount = await prisma.customer.count();
+      // Parse rules if it's a string
+      let parsedRules = rules;
+      if (typeof rules === 'string') {
+        try {
+          parsedRules = JSON.parse(rules);
+        } catch (e) {
+          console.error('Failed to parse rules:', e);
+          return res.status(400).json({
+            success: false,
+            error: { message: 'Invalid rules format' },
+          });
+        }
+      }
+
+      // Use a default user ID if not provided (for testing)
+      const defaultUserId = userId || 'cmfktszbb0000cwjufaxnklgf'; // Test user ID from database
 
       const segment = await prisma.segment.create({
         data: {
           name,
-          rules,
-          customerCount,
+          description: description || '',
+          rules: parsedRules,
+          userId: defaultUserId,
         },
       });
 
@@ -63,8 +85,15 @@ export default async function handler(req, res) {
     } else if (req.method === 'PUT') {
       const { id, ...updateData } = req.body;
       
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Segment ID is required' },
+        });
+      }
+
       const segment = await prisma.segment.update({
-        where: { id: parseInt(id) },
+        where: { id },
         data: updateData,
       });
 
@@ -75,8 +104,15 @@ export default async function handler(req, res) {
     } else if (req.method === 'DELETE') {
       const { id } = req.query;
       
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Segment ID is required' },
+        });
+      }
+      
       await prisma.segment.delete({
-        where: { id: parseInt(id) },
+        where: { id },
       });
 
       res.status(200).json({

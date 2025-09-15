@@ -1,6 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Create Prisma client with Railway database URL
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || 'mysql://root:QUmiFeNSoJyPtbsaODxZNiqZBxbWalrS@yamanote.proxy.rlwy.net:23968/railway'
+    }
+  }
+});
 
 export default async function handler(req, res) {
   console.log('🔍 Database debug API called:', {

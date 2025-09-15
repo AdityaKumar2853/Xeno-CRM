@@ -107,7 +107,13 @@ export const authUtils = {
   verifyToken: async (): Promise<boolean> => {
     try {
       const response = await authAPI.verifyToken();
-      return response.data.success;
+      if (response.data.success && response.data.data.valid) {
+        // Update user data if verification successful
+        const userData = response.data.data.user;
+        localStorage.setItem('user', JSON.stringify(userData));
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Token verification failed:', error);
       return false;
@@ -160,8 +166,15 @@ export const googleOAuthConfig = {
   redirectUri: typeof window !== 'undefined' ? window.location.origin : '',
   // Check if current origin is a Vercel deployment
   isVercelDeployment: typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'),
-  // Base Vercel domain pattern
+  // Base Vercel domain pattern - updated to match current deployment
   vercelDomainPattern: /^https:\/\/xeno-crm-v5.*\.vercel\.app$/,
+  // Allowed origins for OAuth
+  allowedOrigins: [
+    'http://localhost:3000',
+    'https://xeno-crm-v5.vercel.app',
+    'https://xeno-crm-v5-31mxdvabo-aditya-kumars-projects-9c44bbfe.vercel.app',
+    'https://xeno-crm-v5-git-main-aditya-kumars-projects-9c44bbfe.vercel.app'
+  ],
 };
 
 // Google OAuth helper

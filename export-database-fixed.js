@@ -1,6 +1,4 @@
 const mysql = require('mysql2/promise');
-const fs = require('fs');
-const path = require('path');
 
 // Database configuration
 const config = {
@@ -17,13 +15,27 @@ const config = {
     host: 'yamanote.proxy.rlwy.net',
     port: 23968,
     user: 'root',
-    password: 'QUmiFeNSoJyPtbsaODxZNiqZBxbWalrS', // Railway MySQL password
+    password: 'QUmiFeNSoJyPtbsaODxZNiqZBxbWalrS',
     database: 'railway'
   }
 };
 
+// Define table export order (dependencies first)
+const tableOrder = [
+  '_prisma_migrations',
+  'users',
+  'customers',
+  'segments',
+  'campaigns',
+  'orders',
+  'segment_customers',
+  'communication_logs',
+  'ai_integrations',
+  'message_queue'
+];
+
 async function exportDatabase() {
-  console.log('🚀 Starting database export...');
+  console.log('🚀 Starting database export with proper order...');
   
   let sourceConnection, destConnection;
   
@@ -38,14 +50,12 @@ async function exportDatabase() {
     destConnection = await mysql.createConnection(config.destination);
     console.log('✅ Connected to destination database');
     
-    // Get all tables from source
-    console.log('📋 Getting table list...');
-    const [tables] = await sourceConnection.execute('SHOW TABLES');
-    console.log(`Found ${tables.length} tables:`, tables.map(t => Object.values(t)[0]));
+    // Disable foreign key checks temporarily
+    console.log('🔧 Disabling foreign key checks...');
+    await destConnection.execute('SET FOREIGN_KEY_CHECKS = 0');
     
-    // Export each table
-    for (const table of tables) {
-      const tableName = Object.values(table)[0];
+    // Export tables in correct order
+    for (const tableName of tableOrder) {
       console.log(`\n📤 Exporting table: ${tableName}`);
       
       try {
@@ -89,6 +99,10 @@ async function exportDatabase() {
       }
     }
     
+    // Re-enable foreign key checks
+    console.log('\n🔧 Re-enabling foreign key checks...');
+    await destConnection.execute('SET FOREIGN_KEY_CHECKS = 1');
+    
     console.log('\n🎉 Database export completed successfully!');
     
   } catch (error) {
@@ -108,3 +122,4 @@ async function exportDatabase() {
 
 // Run the export
 exportDatabase().catch(console.error);
+

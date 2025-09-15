@@ -89,6 +89,9 @@ const Login: React.FC = () => {
               auto_select: false,
               cancel_on_tap_outside: false,
               use_fedcm_for_prompt: false, // Disable FedCM to avoid issues
+              // Add proper origin validation
+              ux_mode: 'popup',
+              itp_support: true,
             });
             
             // Wait for DOM to be ready before rendering button
@@ -137,44 +140,62 @@ const Login: React.FC = () => {
 
   const handleGoogleLogin = async (response: any) => {
     try {
-      console.log('Google login response received:', response);
-      console.log('Response type:', typeof response);
-      console.log('Response keys:', Object.keys(response || {}));
+      console.log('🔐 Google login response received:', {
+        hasResponse: !!response,
+        responseType: typeof response,
+        responseKeys: Object.keys(response || {}),
+        currentOrigin: window.location.origin,
+        currentHostname: window.location.hostname,
+      });
       
       // Extract credential from response
       const credential = response?.credential || response;
-      console.log('Extracted credential:', credential ? 'Yes' : 'No');
-      console.log('Credential type:', typeof credential);
-      console.log('Credential length:', credential?.length);
+      console.log('🔑 Credential extraction:', {
+        hasCredential: !!credential,
+        credentialType: typeof credential,
+        credentialLength: credential?.length,
+        credentialPrefix: credential ? credential.substring(0, 20) + '...' : 'none',
+      });
       
       if (!credential) {
-        console.error('No credential found in response:', response);
+        console.error('❌ No credential found in response:', response);
         toast.error('Google Sign-In failed: No credential received');
         return;
       }
       
-      console.log('Starting Google login process...');
+      console.log('🚀 Starting Google login process...');
       setIsLoading(true);
       
       const result = await googleLogin(credential);
-      console.log('Google login result:', result);
+      console.log('✅ Google login result:', result);
       
       toast.success(`Welcome back, ${result.user.name || result.user.email}!`);
-      console.log('Login successful, redirecting to dashboard...');
+      console.log('🎉 Login successful, redirecting to dashboard...');
       
       // Small delay to show success message
       setTimeout(() => {
         router.push('/');
       }, 500);
     } catch (error: any) {
-      console.error('Google login failed:', error);
-      console.error('Error details:', {
+      console.error('❌ Google login failed:', {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
-        config: error.config
+        config: error.config,
+        stack: error.stack,
       });
-      toast.error(error.response?.data?.error?.message || 'Login failed');
+      
+      // More specific error messages
+      let errorMessage = 'Login failed';
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.message?.includes('origin_mismatch')) {
+        errorMessage = 'OAuth configuration error. Please check Google Cloud Console settings.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

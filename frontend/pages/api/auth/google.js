@@ -1,6 +1,16 @@
 import { OAuth2Client } from 'google-auth-library';
+import { PrismaClient } from '@prisma/client';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Create Prisma client with Railway database URL
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || 'mysql://root:QUmiFeNSoJyPtbsaODxZNiqZBxbWalrS@yamanote.proxy.rlwy.net:23968/railway'
+    }
+  }
+});
 
 export default async function handler(req, res) {
   console.log('🔐 Google OAuth API called:', {
@@ -33,6 +43,9 @@ export default async function handler(req, res) {
         hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
         clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 20) + '...' : 'NOT SET',
         nodeEnv: process.env.NODE_ENV,
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        host: req.headers.host,
       });
 
       // Verify the Google token
@@ -63,15 +76,39 @@ export default async function handler(req, res) {
         });
       }
 
-      // Create user data from Google payload
-      const user = {
-        id: payload.sub,
-        name: payload.name || '',
-        email: payload.email || '',
-        avatar: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'User')}&background=3b82f6&color=ffffff&size=150`,
-      };
+      // Find or create user in database
+      console.log('🔍 Looking for existing user in database...');
+      let user = await prisma.user.findUnique({
+        where: { googleId: payload.sub }
+      });
 
-      console.log('👤 Created user object:', user);
+      if (!user) {
+        console.log('👤 User not found, creating new user...');
+        user = await prisma.user.create({
+          data: {
+            id: payload.sub, // Use Google ID as primary key
+            googleId: payload.sub,
+            email: payload.email,
+            name: payload.name || '',
+            avatar: payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'User')}&background=3b82f6&color=ffffff&size=150`,
+          }
+        });
+        console.log('✅ New user created:', { id: user.id, email: user.email });
+      } else {
+        console.log('✅ Existing user found:', { id: user.id, email: user.email });
+        
+        // Update user info if needed
+        if (user.name !== payload.name || user.avatar !== payload.picture) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              name: payload.name || user.name,
+              avatar: payload.picture || user.avatar,
+            }
+          });
+          console.log('🔄 User info updated');
+        }
+      }
 
       // Create a simple JWT token (in production, use a proper JWT library)
       const jwtPayload = {
@@ -87,10 +124,18 @@ export default async function handler(req, res) {
         tokenLength: jwtToken.length,
       });
 
+      // Format user data for frontend
+      const userData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      };
+
       const response = {
         success: true,
         data: {
-          user,
+          user: userData,
           token: jwtToken,
         },
       };
@@ -114,6 +159,9 @@ export default async function handler(req, res) {
         success: false,
         error: { message: 'Google authentication failed' },
       });
+    } finally {
+      // Close database connection
+      await prisma.$disconnect();
     }
   } else {
     console.log('❌ Method not allowed:', req.method);
