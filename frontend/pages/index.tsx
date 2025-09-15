@@ -192,25 +192,31 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="card-body">
                 <div className="space-y-4">
-                  {customerStats?.data.recentCustomers?.slice(0, 5).map((customer: any) => (
-                    <div key={customer.id} className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary-600">
-                            {customer.name?.charAt(0) || customer.email.charAt(0)}
-                          </span>
+                  {customerStats?.data?.data?.recentCustomers && customerStats.data.data.recentCustomers.length > 0 ? (
+                    customerStats.data.data.recentCustomers.slice(0, 5).map((customer: any) => (
+                      <div key={customer.id} className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary-600">
+                              {customer.name?.charAt(0) || customer.email.charAt(0)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {customer.name || customer.email}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            ₹{customer.totalSpent?.toLocaleString() || 0} spent
+                          </p>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {customer.name || customer.email}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          ₹{customer.totalSpent?.toLocaleString() || 0} spent
-                        </p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">No recent customers found</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
