@@ -47,16 +47,19 @@ export default async function handler(req, res) {
           },
         });
       } catch (dbError) {
-        console.log('Database not ready, returning empty data:', dbError.message);
-        // Return empty data if database is not ready
-        res.status(200).json({
-          success: true,
-          data: [],
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: 0,
-            pages: 0,
+        console.error('❌ Database error in customers API:', {
+          message: dbError.message,
+          code: dbError.code,
+          stack: dbError.stack,
+          name: dbError.name,
+        });
+        
+        // Return the actual error instead of empty data
+        res.status(500).json({
+          success: false,
+          error: {
+            message: 'Database error: ' + dbError.message,
+            code: dbError.code,
           },
         });
       }
@@ -115,10 +118,18 @@ export default async function handler(req, res) {
       res.status(405).json({ success: false, error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Customer API error:', error);
+    console.error('❌ Customer API error:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name,
+    });
     res.status(500).json({
       success: false,
-      error: { message: 'Internal server error' },
+      error: { 
+        message: 'Internal server error: ' + error.message,
+        code: error.code,
+      },
     });
   } finally {
     await prisma.$disconnect();

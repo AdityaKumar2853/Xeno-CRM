@@ -132,10 +132,18 @@ export default async function handler(req, res) {
       res.status(405).json({ success: false, error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Campaign API error:', error);
+    console.error('❌ Campaign API error:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name,
+    });
     res.status(500).json({
       success: false,
-      error: { message: 'Internal server error' },
+      error: { 
+        message: 'Internal server error: ' + error.message,
+        code: error.code,
+      },
     });
   } finally {
     await prisma.$disconnect();
