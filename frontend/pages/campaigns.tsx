@@ -104,7 +104,7 @@ const Campaigns: React.FC = () => {
   );
 
   // Fetch segments for dropdown
-  const { data: segments } = useQuery(
+  const { data: segments, error: segmentsError, isLoading: segmentsLoading } = useQuery(
     ['segments'],
     () => segmentAPI.getSegments({ page: 1, limit: 100 }),
     {
@@ -114,6 +114,12 @@ const Campaigns: React.FC = () => {
       }
     }
   );
+
+  // Debug logging for segments
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Segments query result:', { segments, segmentsError, segmentsLoading });
+    console.log('Segments data structure:', segments?.data?.data);
+  }
 
   // Show loading until client-side hydration is complete
   if (!isClient) {
@@ -413,7 +419,7 @@ const Campaigns: React.FC = () => {
                         required
                       >
                         <option value="">Select a segment</option>
-                        {segments?.data?.data?.segments?.map((segment: any) => (
+                        {segments?.data?.data?.map((segment: any) => (
                           <option key={segment.id} value={segment.id}>
                             {segment.name}
                           </option>
