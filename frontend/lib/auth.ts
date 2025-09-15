@@ -158,6 +158,10 @@ export const googleOAuthConfig = {
   clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '7230563022-th5imecc10i0pgcv4esc0dke1v9s2pf2.apps.googleusercontent.com',
   scope: 'openid email profile',
   redirectUri: typeof window !== 'undefined' ? window.location.origin : '',
+  // Check if current origin is a Vercel deployment
+  isVercelDeployment: typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'),
+  // Base Vercel domain pattern
+  vercelDomainPattern: /^https:\/\/xeno-crm-v5.*\.vercel\.app$/,
 };
 
 // Google OAuth helper
@@ -193,15 +197,24 @@ export const googleOAuth = {
       return;
     }
 
+    const currentOrigin = window.location.origin;
+    console.log('Current origin:', currentOrigin);
+    console.log('Is Vercel deployment:', googleOAuthConfig.isVercelDeployment);
+    console.log('Matches pattern:', googleOAuthConfig.vercelDomainPattern.test(currentOrigin));
+
     (window as any).google.accounts.id.initialize({
       client_id: googleOAuthConfig.clientId,
       callback: (response: any) => {
+        console.log('Google OAuth callback received:', response);
         if (response.credential) {
           onSuccess(response.credential);
         } else {
           onError?.('No credential received');
         }
       },
+      auto_select: false,
+      cancel_on_tap_outside: false,
+      use_fedcm_for_prompt: false,
     });
 
     (window as any).google.accounts.id.renderButton(
