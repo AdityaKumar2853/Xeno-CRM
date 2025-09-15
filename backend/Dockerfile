@@ -51,4 +51,4 @@ EXPOSE 3001
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "run", "start:simple"]
+CMD ["npm", "start"]

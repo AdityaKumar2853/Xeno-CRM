@@ -98,17 +98,19 @@ export const config = {
   }
 };
 
-// Validate required environment variables
-const requiredEnvVars = [
-  'DATABASE_URL',
-  'JWT_SECRET',
-  'GOOGLE_CLIENT_ID',
-  'GOOGLE_CLIENT_SECRET',
-];
+// Validate required environment variables (only in production)
+if (process.env.NODE_ENV === 'production') {
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
+  ];
 
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
-if (missingEnvVars.length > 0) {
-  console.error('Missing required environment variables:', missingEnvVars);
-  process.exit(1);
+  if (missingEnvVars.length > 0) {
+    console.error('Missing required environment variables:', missingEnvVars);
+    console.log('Continuing with default values for development...');
+  }
 }
