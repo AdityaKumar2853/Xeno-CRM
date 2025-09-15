@@ -1,60 +1,189 @@
-import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { campaignAPI } from '@/lib/api';
+import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 const Campaigns: React.FC = () => {
+  const [isClient, setIsClient] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    status: 'draft',
+    audience: '',
+    message: '',
+  });
 
-  // Mock data for campaigns
-  const campaigns = [
-    {
-      id: '1',
-      name: 'Welcome Campaign',
-      description: 'Welcome new customers with a special offer',
-      status: 'running',
-      audience: 'New Customers',
-      audienceSize: 25,
-      sent: 20,
-      delivered: 18,
-      opened: 12,
-      clicked: 8,
-      createdAt: '2024-01-20',
-    },
-    {
-      id: '2',
-      name: 'Win-back Campaign',
-      description: 'Re-engage inactive customers',
-      status: 'completed',
-      audience: 'Inactive Customers',
-      audienceSize: 123,
-      sent: 123,
-      delivered: 110,
-      opened: 45,
-      clicked: 15,
-      createdAt: '2024-01-15',
-    },
-    {
-      id: '3',
-      name: 'Holiday Sale',
-      description: 'Special holiday discount for all customers',
-      status: 'scheduled',
-      audience: 'All Customers',
-      audienceSize: 500,
-      sent: 0,
-      delivered: 0,
-      opened: 0,
-      clicked: 0,
-      createdAt: '2024-01-10',
-    },
-  ];
+  const queryClient = useQueryClient();
 
-  const filteredCampaigns = campaigns.filter(campaign =>
-    campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    campaign.description.toLowerCase().includes(searchQuery.toLowerCase())
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Create campaign mutation
+  const createCampaignMutation = useMutation(campaignAPI.createCampaign, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['campaigns']);
+      toast.success('Campaign created successfully!');
+      setShowModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      console.error('Create campaign error:', error);
+      toast.error(error.response?.data?.error?.message || 'Failed to create campaign');
+    },
+  });
+
+  // Update campaign mutation
+  const updateCampaignMutation = useMutation(
+    ({ id, data }: { id: string; data: any }) => campaignAPI.updateCampaign(id, data),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['campaigns']);
+        toast.success('Campaign updated successfully!');
+        setShowModal(false);
+        resetForm();
+      },
+      onError: (error: any) => {
+        console.error('Update campaign error:', error);
+        toast.error(error.response?.data?.error?.message || 'Failed to update campaign');
+      },
+    }
   );
+
+  // Delete campaign mutation
+  const deleteCampaignMutation = useMutation(campaignAPI.deleteCampaign, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['campaigns']);
+      toast.success('Campaign deleted successfully!');
+    },
+    onError: (error: any) => {
+      console.error('Delete campaign error:', error);
+      toast.error(error.response?.data?.error?.message || 'Failed to delete campaign');
+    },
+  });
+
+  const { data: campaigns, isLoading, error } = useQuery(
+    ['campaigns', currentPage, pageSize, debouncedSearchQuery],
+    () => campaignAPI.getCampaigns({
+      page: currentPage,
+      limit: pageSize,
+      search: debouncedSearchQuery || undefined,
+    }),
+    {
+      retry: 1,
+      retryDelay: 1000,
+      onError: (error) => {
+        console.error('Failed to fetch campaigns:', error);
+      }
+    }
+  );
+
+  // Show loading until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
+
+  const campaignsData = campaigns?.data?.data?.campaigns || [];
+
+  // Helper functions
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      status: 'draft',
+      audience: '',
+      message: '',
+    });
+    setEditingCampaign(null);
+  };
+
+  const handleAddCampaign = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleEditCampaign = (campaign: any) => {
+    setFormData({
+      name: campaign.name || '',
+      description: campaign.description || '',
+      status: campaign.status || 'draft',
+      audience: campaign.audience || '',
+      message: campaign.message || '',
+    });
+    setEditingCampaign(campaign);
+    setShowModal(true);
+  };
+
+  const handleDeleteCampaign = (campaignId: string) => {
+    if (window.confirm('Are you sure you want to delete this campaign?')) {
+      deleteCampaignMutation.mutate(campaignId);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingCampaign) {
+      updateCampaignMutation.mutate({
+        id: editingCampaign.id,
+        data: formData,
+      });
+    } else {
+      createCampaignMutation.mutate(formData);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Search input handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -83,7 +212,10 @@ const Campaigns: React.FC = () => {
                 Create and manage marketing campaigns
               </p>
             </div>
-            <button className="btn btn-primary">
+            <button 
+              onClick={handleAddCampaign}
+              className="btn btn-primary"
+            >
               <PlusIcon className="h-5 w-5 mr-2" />
               Create Campaign
             </button>
@@ -93,11 +225,13 @@ const Campaigns: React.FC = () => {
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
+              key="campaign-search-input"
               type="text"
               placeholder="Search campaigns..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+              autoComplete="off"
             />
           </div>
 
@@ -129,48 +263,56 @@ const Campaigns: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredCampaigns.map((campaign) => (
+                    {campaignsData?.map((campaign: any) => (
                       <tr key={campaign.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {campaign.name}
+                              {campaign.name || 'No Name'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {campaign.description}
+                              {campaign.description || 'No Description'}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {campaign.audience}
+                            {campaign.audience || 'No Audience'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {campaign.audienceSize} customers
+                            {campaign.audienceSize || 0} customers
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(campaign.status)}`}>
-                            {campaign.status}
+                            {campaign.status || 'draft'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="space-y-1">
-                            <div>Sent: {campaign.sent}/{campaign.audienceSize}</div>
-                            <div>Delivered: {campaign.delivered}</div>
-                            <div>Opened: {campaign.opened}</div>
-                            <div>Clicked: {campaign.clicked}</div>
+                            <div>Sent: {campaign.sent || 0}/{campaign.audienceSize || 0}</div>
+                            <div>Delivered: {campaign.delivered || 0}</div>
+                            <div>Opened: {campaign.opened || 0}</div>
+                            <div>Clicked: {campaign.clicked || 0}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(campaign.createdAt).toLocaleDateString()}
+                          {campaign.createdAt ? new Date(campaign.createdAt).toLocaleDateString() : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button className="text-primary-600 hover:text-primary-900 mr-4">
-                            View
-                          </button>
-                          <button className="text-primary-600 hover:text-primary-900">
+                          <button 
+                            onClick={() => handleEditCampaign(campaign)}
+                            className="text-primary-600 hover:text-primary-900 mr-4 flex items-center"
+                          >
+                            <PencilIcon className="h-4 w-4 mr-1" />
                             Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCampaign(campaign.id)}
+                            className="text-red-600 hover:text-red-900 flex items-center"
+                          >
+                            <TrashIcon className="h-4 w-4 mr-1" />
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -181,9 +323,102 @@ const Campaigns: React.FC = () => {
             </div>
           </div>
 
-          {filteredCampaigns.length === 0 && (
+          {campaignsData?.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">No campaigns found</p>
+            </div>
+          )}
+
+          {/* Campaign Modal */}
+          {showModal && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div className="mt-3">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {editingCampaign ? 'Edit Campaign' : 'Add New Campaign'}
+                  </h3>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Description</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Status</label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        required
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="running">Running</option>
+                        <option value="paused">Paused</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Audience</label>
+                      <input
+                        type="text"
+                        name="audience"
+                        value={formData.audience}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="e.g., High Value Customers"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Message</label>
+                      <textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Enter your campaign message..."
+                        required
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowModal(false)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={createCampaignMutation.isLoading || updateCampaignMutation.isLoading}
+                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
+                      >
+                        {createCampaignMutation.isLoading || updateCampaignMutation.isLoading ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           )}
         </div>

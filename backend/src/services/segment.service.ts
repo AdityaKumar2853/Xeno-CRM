@@ -7,7 +7,7 @@ export interface CreateSegmentData {
   name: string;
   description?: string;
   rules: RuleGroup | RuleCondition;
-  userId: string;
+  userId?: string;
 }
 
 export interface UpdateSegmentData {
@@ -30,17 +30,38 @@ export class SegmentService {
         throw errors.VALIDATION_ERROR('Invalid segment rules');
       }
 
+      // Get or create default user if userId not provided
+      let userId = data.userId;
+      if (!userId) {
+        // Try to find existing test user
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          // Create test user if doesn't exist
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        userId = testUser.id;
+      }
+
       // Create segment
       const segment = await prisma.segment.create({
         data: {
           name: data.name,
           description: data.description || null,
           rules: data.rules as any,
-          userId: data.userId,
+          userId: userId,
         },
       });
 
-      logger.info('Segment created successfully:', { segmentId: segment.id, userId: data.userId });
+      logger.info('Segment created successfully:', { segmentId: segment.id, userId: userId });
 
       return segment;
     } catch (error) {
@@ -87,13 +108,32 @@ export class SegmentService {
   }
 
   static async getSegments(
-    userId: string,
+    userId: string | undefined,
     page: number = 1,
     limit: number = 10,
     search?: string
   ): Promise<{ segments: any[]; total: number; page: number; limit: number }> {
     try {
-      const where: any = { userId };
+      // If no userId provided, get or create test user
+      let actualUserId = userId;
+      if (!actualUserId) {
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        actualUserId = testUser.id;
+      }
+
+      const where: any = { userId: actualUserId };
 
       if (search) {
         where.OR = [
@@ -167,12 +207,31 @@ export class SegmentService {
     }
   }
 
-  static async deleteSegment(id: string, userId: string): Promise<void> {
+  static async deleteSegment(id: string, userId: string | undefined): Promise<void> {
     try {
+      // If no userId provided, get or create test user
+      let actualUserId = userId;
+      if (!actualUserId) {
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        actualUserId = testUser.id;
+      }
+
       const result = await prisma.segment.deleteMany({
         where: { 
           id,
-          userId,
+          userId: actualUserId,
         },
       });
 
@@ -180,7 +239,7 @@ export class SegmentService {
         throw errors.NOT_FOUND('Segment not found');
       }
 
-      logger.info('Segment deleted successfully:', { segmentId: id, userId });
+      logger.info('Segment deleted successfully:', { segmentId: id, userId: actualUserId });
     } catch (error) {
       logger.error('Failed to delete segment:', error as Error);
       throw error;
