@@ -18,6 +18,7 @@ import segmentsRoutes from './api/segments/segments.routes';
 import campaignsRoutes from './api/campaigns/campaigns.routes';
 import deliveryRoutes from './api/delivery/delivery.routes';
 import aiRoutes from './api/ai/ai.routes';
+import chatRoutes from './api/chat/chat.routes';
 
 // Import workers
 import { IngestConsumer } from './workers/ingest-consumer';
@@ -71,6 +72,7 @@ app.use('/api/segments', segmentsRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/chat', chatRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

@@ -148,4 +148,9 @@ export const ingestAPI = {
   getStats: () => api.get('/ingest/stats'),
 };
 
+// Chat API
+export const chatAPI = {
+  generateContent: (message: string) => api.post('/chat/generate', { message }),
+};
+
 export default api;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
+import ChatBot from './ChatBot';
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -11,6 +12,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -19,6 +21,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -174,6 +177,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow-2xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-110 active:scale-95 animate-bounce-in"
+        title="Open AI Assistant"
+      >
+        <ChatBubbleLeftRightIcon className="h-6 w-6" />
+      </button>
+
+      {/* ChatBot Modal */}
+      <ChatBot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 };

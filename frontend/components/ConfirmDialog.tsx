@@ -56,12 +56,13 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-[60] overflow-y-auto h-screen w-screen" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed top-0 left-0 right-0 bottom-0 bg-gray-900/50 backdrop-blur-sm transition-opacity h-screen w-screen"
           onClick={onClose}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
         />
         
         {/* Dialog panel */}

@@ -367,7 +367,7 @@ const Segments: React.FC = () => {
 
           {/* Segment Modal */}
           {showModal && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="fixed top-0 left-0 right-0 bottom-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-screen w-screen z-[60]" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
               <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                 <div className="mt-3">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
