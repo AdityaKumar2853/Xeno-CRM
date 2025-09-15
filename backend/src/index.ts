@@ -37,25 +37,25 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
-      'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
-      'https://xeno-crm-v5-73ygmd9th-aditya-kumars-projects-9c44bbfe.vercel.app',
-    ];
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    // Always allow localhost for development
+    if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
       return callback(null, true);
     }
     
-    // Check if origin matches Vercel pattern
-    if (/^https:\/\/xeno-crm.*\.vercel\.app$/.test(origin)) {
+    // Allow all Vercel deployments (both preview and production)
+    if (/^https:\/\/.*\.vercel\.app$/.test(origin)) {
+      console.log('CORS: Allowing Vercel deployment:', origin);
       return callback(null, true);
     }
     
-    // Check if origin matches environment variable
+    // Allow environment variable URL
     if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    // Allow any subdomain of vercel.app (for future deployments)
+    if (origin.includes('.vercel.app')) {
+      console.log('CORS: Allowing Vercel subdomain:', origin);
       return callback(null, true);
     }
     
@@ -89,16 +89,21 @@ app.options('*', (req, res) => {
 // Add CORS headers to all responses
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
-    'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
-    'https://xeno-crm-v5-73ygmd9th-aditya-kumars-projects-9c44bbfe.vercel.app',
-  ];
   
-  if (origin && (allowedOrigins.includes(origin) || /^https:\/\/xeno-crm.*\.vercel\.app$/.test(origin))) {
+  // Always allow localhost for development
+  if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:'))) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+  }
+  // Allow all Vercel deployments
+  else if (origin && /^https:\/\/.*\.vercel\.app$/.test(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  // Allow any subdomain of vercel.app
+  else if (origin && origin.includes('.vercel.app')) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  // Allow environment variable URL
+  else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
     res.header('Access-Control-Allow-Origin', origin);
   }
   
