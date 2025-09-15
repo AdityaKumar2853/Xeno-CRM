@@ -219,7 +219,7 @@ export const googleOAuth = {
       elementId,
       elementFound: !!element,
       elementType: element?.tagName,
-      elementId: element?.id,
+      elementIdValue: element?.id,
     });
 
     if (!element) {
