@@ -1,4 +1,5 @@
 # Use Node.js 18 Alpine as base image
+# Updated for Railway deployment - includes dev dependencies for build
 FROM node:18-alpine
 
 # Set working directory
