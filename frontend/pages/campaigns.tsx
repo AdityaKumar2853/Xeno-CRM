@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { campaignAPI } from '@/lib/api';
+import { campaignAPI, segmentAPI } from '@/lib/api';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -21,6 +21,7 @@ const Campaigns: React.FC = () => {
     status: 'draft',
     audience: '',
     message: '',
+    segmentId: '',
   });
 
   const queryClient = useQueryClient();
@@ -98,6 +99,18 @@ const Campaigns: React.FC = () => {
     }
   );
 
+  // Fetch segments for dropdown
+  const { data: segments } = useQuery(
+    ['segments'],
+    () => segmentAPI.getSegments({ page: 1, limit: 100 }),
+    {
+      retry: 1,
+      onError: (error) => {
+        console.error('Failed to fetch segments:', error);
+      }
+    }
+  );
+
   // Show loading until client-side hydration is complete
   if (!isClient) {
     return (
@@ -133,6 +146,7 @@ const Campaigns: React.FC = () => {
       status: 'draft',
       audience: '',
       message: '',
+      segmentId: '',
     });
     setEditingCampaign(null);
   };
@@ -149,6 +163,7 @@ const Campaigns: React.FC = () => {
       status: campaign.status || 'draft',
       audience: campaign.audience || '',
       message: campaign.message || '',
+      segmentId: campaign.segmentId || '',
     });
     setEditingCampaign(campaign);
     setShowModal(true);
@@ -374,6 +389,23 @@ const Campaigns: React.FC = () => {
                         <option value="running">Running</option>
                         <option value="paused">Paused</option>
                         <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Segment</label>
+                      <select
+                        name="segmentId"
+                        value={formData.segmentId}
+                        onChange={handleInputChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        required
+                      >
+                        <option value="">Select a segment</option>
+                        {segments?.data?.data?.segments?.map((segment: any) => (
+                          <option key={segment.id} value={segment.id}>
+                            {segment.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>

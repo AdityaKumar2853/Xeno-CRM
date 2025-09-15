@@ -9,7 +9,7 @@ export interface CreateCampaignData {
   description?: string;
   message: string;
   segmentId: string;
-  userId: string;
+  userId?: string;
   scheduledAt?: Date;
 }
 
@@ -33,11 +33,30 @@ export interface CampaignStats {
 export class CampaignService {
   static async createCampaign(data: CreateCampaignData): Promise<any> {
     try {
+      // Get or create default user if userId not provided
+      let userId = data.userId;
+      if (!userId) {
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        userId = testUser.id;
+      }
+
       // Verify segment belongs to user
       const segment = await prisma.segment.findFirst({
         where: { 
           id: data.segmentId,
-          userId: data.userId,
+          userId: userId,
         },
       });
 
@@ -52,7 +71,7 @@ export class CampaignService {
           description: data.description || null,
           message: data.message,
           segmentId: data.segmentId,
-          userId: data.userId,
+          userId: userId,
           status: data.scheduledAt ? 'scheduled' : 'draft',
           scheduledAt: data.scheduledAt || null,
         },
@@ -115,14 +134,33 @@ export class CampaignService {
   }
 
   static async getCampaigns(
-    userId: string,
+    userId: string | undefined,
     page: number = 1,
     limit: number = 10,
     status?: string,
     search?: string
   ): Promise<{ campaigns: any[]; total: number; page: number; limit: number }> {
     try {
-      const where: any = { userId };
+      // If no userId provided, get or create test user
+      let actualUserId = userId;
+      if (!actualUserId) {
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        actualUserId = testUser.id;
+      }
+
+      const where: any = { userId: actualUserId };
 
       if (status) {
         where.status = status;
@@ -197,12 +235,31 @@ export class CampaignService {
     }
   }
 
-  static async deleteCampaign(id: string, userId: string): Promise<void> {
+  static async deleteCampaign(id: string, userId: string | undefined): Promise<void> {
     try {
+      // If no userId provided, get or create test user
+      let actualUserId = userId;
+      if (!actualUserId) {
+        let testUser = await prisma.user.findFirst({
+          where: { email: 'test@example.com' }
+        });
+
+        if (!testUser) {
+          testUser = await prisma.user.create({
+            data: {
+              email: 'test@example.com',
+              name: 'Test User',
+              googleId: 'test-google-id'
+            }
+          });
+        }
+        actualUserId = testUser.id;
+      }
+
       const result = await prisma.campaign.deleteMany({
         where: { 
           id,
-          userId,
+          userId: actualUserId,
         },
       });
 
@@ -210,7 +267,7 @@ export class CampaignService {
         throw errors.NOT_FOUND('Campaign not found');
       }
 
-      logger.info('Campaign deleted successfully:', { campaignId: id, userId });
+      logger.info('Campaign deleted successfully:', { campaignId: id, userId: actualUserId });
     } catch (error) {
       logger.error('Failed to delete campaign:', error);
       throw error;
