@@ -168,12 +168,10 @@ export const googleOAuthConfig = {
   isVercelDeployment: typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'),
   // Base Vercel domain pattern - updated to match current deployment
   vercelDomainPattern: /^https:\/\/xeno-crm-v5.*\.vercel\.app$/,
-  // Allowed origins for OAuth
+  // Allowed origins for OAuth - using stable Vercel domain
   allowedOrigins: [
     'http://localhost:3000',
-    'https://xeno-crm-v5.vercel.app',
-    'https://xeno-crm-v5-31mxdvabo-aditya-kumars-projects-9c44bbfe.vercel.app',
-    'https://xeno-crm-v5-git-main-aditya-kumars-projects-9c44bbfe.vercel.app'
+    'https://xeno-crm-v5.vercel.app'
   ],
 };
 

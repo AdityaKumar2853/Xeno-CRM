@@ -14,5 +14,13 @@
   "github": {
     "enabled": true,
     "autoAlias": false
-  }
+  },
+  "alias": ["xeno-crm-v5.vercel.app"],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://xeno-crm-v5.vercel.app/$1",
+      "permanent": false
+    }
+  ]
 }
