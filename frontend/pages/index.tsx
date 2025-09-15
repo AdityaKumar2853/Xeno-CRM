@@ -50,14 +50,6 @@ const Dashboard: React.FC = () => {
     onError: (error) => console.error('Failed to fetch campaigns:', error)
   });
 
-  // Debug logging for development only
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Dashboard API Status:', {
-      customerStats: !!customerStats,
-      orderStats: !!orderStats,
-      campaigns: !!campaigns
-    });
-  }
 
   useEffect(() => {
     const newStats = {
@@ -92,7 +84,6 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  console.log('Current stats state:', JSON.stringify(stats, null, 2));
   
   const statCards = [
     {
@@ -121,7 +112,6 @@ const Dashboard: React.FC = () => {
     },
   ];
   
-  console.log('Stat cards:', JSON.stringify(statCards, null, 2));
 
   return (
     <AuthGuard>

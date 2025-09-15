@@ -14,7 +14,6 @@ const Login: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('User is authenticated, redirecting to dashboard...');
       router.push('/');
     } else {
       // Reset Google OAuth state when not authenticated
@@ -72,8 +71,6 @@ const Login: React.FC = () => {
         
         script.onload = () => {
           if (typeof window !== 'undefined' && (window as any).google) {
-            console.log('Google OAuth Client ID:', googleOAuthConfig.clientId);
-            console.log('Current origin:', window.location.origin);
             
             // Check if client ID is properly configured
             if (!googleOAuthConfig.clientId || googleOAuthConfig.clientId === 'your-google-client-id-here') {
@@ -140,22 +137,9 @@ const Login: React.FC = () => {
 
   const handleGoogleLogin = async (response: any) => {
     try {
-      console.log('🔐 Google login response received:', {
-        hasResponse: !!response,
-        responseType: typeof response,
-        responseKeys: Object.keys(response || {}),
-        currentOrigin: window.location.origin,
-        currentHostname: window.location.hostname,
-      });
       
       // Extract credential from response
       const credential = response?.credential || response;
-      console.log('🔑 Credential extraction:', {
-        hasCredential: !!credential,
-        credentialType: typeof credential,
-        credentialLength: credential?.length,
-        credentialPrefix: credential ? credential.substring(0, 20) + '...' : 'none',
-      });
       
       if (!credential) {
         console.error('❌ No credential found in response:', response);
@@ -163,14 +147,11 @@ const Login: React.FC = () => {
         return;
       }
       
-      console.log('🚀 Starting Google login process...');
       setIsLoading(true);
       
       const result = await googleLogin(credential);
-      console.log('✅ Google login result:', result);
       
       toast.success(`Welcome back, ${result.user.name || result.user.email}!`);
-      console.log('🎉 Login successful, redirecting to dashboard...');
       
       // Small delay to show success message
       setTimeout(() => {

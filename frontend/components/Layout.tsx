@@ -130,7 +130,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="flex-shrink-0">
                     {user && user.avatar ? (
                       <>
-                        {console.log('User avatar data:', { user, avatar: user.avatar })}
                         <img
                           className="h-8 w-8 rounded-full"
                           src={user.avatar}

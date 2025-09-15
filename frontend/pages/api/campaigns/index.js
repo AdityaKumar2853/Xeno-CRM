@@ -49,7 +49,6 @@ export default async function handler(req, res) {
           },
         });
       } catch (dbError) {
-        console.log('Database not ready for campaigns, returning empty data:', dbError.message);
         // Return empty data if database is not ready
         res.status(200).json({
           success: true,

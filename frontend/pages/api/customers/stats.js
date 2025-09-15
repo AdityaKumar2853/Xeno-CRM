@@ -36,7 +36,6 @@ export default async function handler(req, res) {
           },
         });
       } catch (dbError) {
-        console.log('Database not ready for customer stats, returning zero data:', dbError.message);
         // Return zero data if database is not ready
         res.status(200).json({
           success: true,
