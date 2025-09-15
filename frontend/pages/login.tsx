@@ -15,6 +15,10 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       router.push('/');
+    } else {
+      // Reset Google OAuth state when not authenticated
+      setIsLoading(false);
+      setIsGoogleLoaded(false);
     }
   }, [isAuthenticated, router]);
 
@@ -27,8 +31,21 @@ const Login: React.FC = () => {
           return;
         }
 
+        // Reset Google OAuth state
+        setIsLoading(false);
+        setIsGoogleLoaded(false);
+
         // Check if Google is already loaded
         if ((window as any).google && (window as any).google.accounts) {
+          // Re-initialize Google OAuth
+          (window as any).google.accounts.id.initialize({
+            client_id: googleOAuthConfig.clientId,
+            callback: handleGoogleLogin,
+            auto_select: false,
+            cancel_on_tap_outside: false,
+            use_fedcm_for_prompt: false,
+          });
+          setIsGoogleLoaded(true);
           return;
         }
 
@@ -41,13 +58,22 @@ const Login: React.FC = () => {
         script.onload = () => {
           if (typeof window !== 'undefined' && (window as any).google) {
             console.log('Google OAuth Client ID:', googleOAuthConfig.clientId);
+            console.log('Current origin:', window.location.origin);
             
-            // Initialize Google OAuth
+            // Check if client ID is properly configured
+            if (!googleOAuthConfig.clientId || googleOAuthConfig.clientId === 'your-google-client-id-here') {
+              console.warn('Google OAuth Client ID not properly configured. Using test login only.');
+              setIsGoogleLoaded(true);
+              return;
+            }
+            
+            // Initialize Google OAuth with additional configuration
             (window as any).google.accounts.id.initialize({
               client_id: googleOAuthConfig.clientId,
               callback: handleGoogleLogin,
               auto_select: false,
               cancel_on_tap_outside: false,
+              use_fedcm_for_prompt: false, // Disable FedCM to avoid issues
             });
             
             // Wait for DOM to be ready before rendering button
@@ -94,47 +120,47 @@ const Login: React.FC = () => {
             initGoogle();
           }, []);
 
-  const handleGoogleLogin = async (credential: string) => {
+  const handleGoogleLogin = async (response: any) => {
     try {
+      console.log('Google login response received:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Extract credential from response
+      const credential = response?.credential || response;
+      console.log('Extracted credential:', credential ? 'Yes' : 'No');
+      console.log('Credential type:', typeof credential);
+      console.log('Credential length:', credential?.length);
+      
+      if (!credential) {
+        console.error('No credential found in response:', response);
+        toast.error('Google Sign-In failed: No credential received');
+        return;
+      }
+      
+      console.log('Starting Google login process...');
       setIsLoading(true);
-      await googleLogin(credential);
+      
+      const result = await googleLogin(credential);
+      console.log('Google login result:', result);
+      
       toast.success('Login successful!');
+      console.log('Redirecting to dashboard...');
       router.push('/');
     } catch (error: any) {
       console.error('Google login failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
       toast.error(error.response?.data?.error?.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Temporary bypass for testing
-  const handleTestLogin = async () => {
-    try {
-      setIsLoading(true);
-      // Create a mock user for testing
-      const mockUser = {
-        id: 'test-user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        avatar: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('token', 'test-token-123');
-      
-      // Force a complete page reload to reset all React state
-      window.location.reload();
-    } catch (error: any) {
-      console.error('Test login failed:', error);
-      toast.error('Test login failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleError = (error: string) => {
     console.error('Google OAuth error:', error);
@@ -171,9 +197,17 @@ const Login: React.FC = () => {
                   <span className="ml-2 text-sm text-gray-500">Loading Google Sign-In...</span>
                 </div>
               )}
+              {isGoogleLoaded && (!googleOAuthConfig.clientId || googleOAuthConfig.clientId === 'your-google-client-id-here') && (
+                <div className="text-center p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-800">
+                    Google OAuth not configured. Please set GOOGLE_CLIENT_ID environment variable.
+                  </p>
+                </div>
+              )}
               <button
                 onClick={() => {
                   if (typeof window !== 'undefined' && (window as any).google) {
+                    console.log('Triggering Google OAuth prompt...');
                     (window as any).google.accounts.id.prompt();
                   } else {
                     toast.error('Google OAuth not initialized');
@@ -186,19 +220,6 @@ const Login: React.FC = () => {
                   <LoadingSpinner size="sm" />
                 ) : (
                   'Sign in with Google'
-                )}
-              </button>
-              
-              {/* Test Login Button */}
-              <button
-                onClick={handleTestLogin}
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <LoadingSpinner size="sm" />
-                ) : (
-                  'Test Login (Bypass Google OAuth)'
                 )}
               </button>
             </div>

@@ -9,7 +9,14 @@ export class AuthController {
   static googleLogin = asyncHandler(async (req: Request, res: Response) => {
     const { token } = req.body;
 
+    logger.info('Google login request received:', { 
+      hasToken: !!token, 
+      tokenLength: token?.length,
+      body: req.body 
+    });
+
     if (!token) {
+      logger.error('Google login failed: No token provided');
       return res.status(400).json({
         success: false,
         error: { message: 'Google token is required' },
@@ -18,13 +25,19 @@ export class AuthController {
 
     try {
       // Verify Google token
+      logger.info('Verifying Google token...');
       const googleUser = await AuthService.verifyGoogleToken(token);
+      logger.info('Google token verified successfully:', { email: googleUser.email });
       
       // Find or create user
+      logger.info('Finding or creating user...');
       const user = await AuthService.findOrCreateUser(googleUser);
+      logger.info('User found/created successfully:', { userId: user.id, email: user.email });
       
       // Generate JWT token
+      logger.info('Generating JWT token...');
       const jwtToken = AuthService.generateToken(user);
+      logger.info('JWT token generated successfully');
 
       logger.info('User logged in successfully:', { userId: user.id, email: user.email });
 

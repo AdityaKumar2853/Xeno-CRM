@@ -35,12 +35,21 @@ export class AuthService {
         throw errors.UNAUTHORIZED('Invalid Google token');
       }
 
-      return {
+      const googleUser = {
         id: payload.sub,
         email: payload.email!,
         name: payload.name!,
         picture: payload.picture || '',
       };
+      
+      logger.info('Google user data extracted:', {
+        id: googleUser.id,
+        email: googleUser.email,
+        name: googleUser.name,
+        picture: googleUser.picture
+      });
+      
+      return googleUser;
     } catch (error) {
       logger.error('Google token verification failed:', error);
       throw errors.UNAUTHORIZED('Invalid Google token');
@@ -90,12 +99,21 @@ export class AuthService {
         });
       }
 
-      return {
+      const userPayload = {
         id: user.id,
         email: user.email,
         name: user.name || '',
         avatar: user.avatar || '',
       };
+      
+      logger.info('User payload created:', {
+        id: userPayload.id,
+        email: userPayload.email,
+        name: userPayload.name,
+        avatar: userPayload.avatar
+      });
+      
+      return userPayload;
     } catch (error) {
       logger.error('Failed to find or create user:', error);
       throw errors.INTERNAL_SERVER_ERROR('Authentication failed');

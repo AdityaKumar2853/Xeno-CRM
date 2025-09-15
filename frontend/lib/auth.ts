@@ -57,13 +57,19 @@ export const authUtils = {
   // Google login
   googleLogin: async (googleToken: string): Promise<{ user: User; token: string }> => {
     try {
+      console.log('Calling authAPI.googleLogin with token length:', googleToken?.length);
       const response = await authAPI.googleLogin(googleToken);
+      console.log('Auth API response:', response.data);
+      
       const { user, token } = response.data.data;
+      console.log('Extracted user and token:', { user, token: token?.substring(0, 20) + '...' });
       
       authUtils.setAuthData(user, token);
+      console.log('Auth data set in localStorage');
       return { user, token };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google login failed:', error);
+      console.error('Error response:', error.response?.data);
       throw error;
     }
   },

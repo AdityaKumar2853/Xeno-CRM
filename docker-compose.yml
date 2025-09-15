@@ -44,10 +44,10 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: "44a03fb708ab9c51fd8de2dd18a27ecd8e655f20f8780d48b1c50cd023cafcfad2ba01f241ab10e6b9579d15a726c5bda12e218b00a26adddc83636136e2df0f"
 
-      GOOGLE_CLIENT_ID: "your-google-client-id-here"
-      GOOGLE_CLIENT_SECRET: "your-google-client-secret-here"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
 
-      OPENAI_API_KEY: "your-openai-api-key-here"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
 
       API_PORT: 3001
       FRONTEND_URL: http://localhost:3000
@@ -69,12 +69,12 @@ services:
       dockerfile: ../infra/docker/frontend.Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:3001
-        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
     container_name: mini-crm-frontend
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
-      NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
     ports:
       - "3000:3000"
     depends_on:
