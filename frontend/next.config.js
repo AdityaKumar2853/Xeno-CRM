@@ -2,19 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone',
   images: {
     domains: ['lh3.googleusercontent.com'],
   },
-  async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
-      },
-    ];
-  },
+  // Remove rewrites for Vercel deployment - API will be handled by vercel.json
 }
 
 module.exports = nextConfig
