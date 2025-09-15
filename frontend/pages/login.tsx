@@ -190,34 +190,44 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to Mini CRM
+        <div className="text-center animate-fade-in">
+          <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-2xl mb-6">
+            <span className="text-2xl font-bold text-white">CRM</span>
+          </div>
+          <h2 className="text-4xl font-bold gradient-text mb-4">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Access your customer relationship management platform
+          <p className="text-lg text-gray-600">
+            Sign in to your Mini CRM dashboard
           </p>
         </div>
         
         <div className="mt-8 space-y-6">
-          <div className="text-center">
-            <div className="space-y-4">
-              <div id="google-signin-button" className="flex justify-center" />
-              {!isGoogleLoaded && (
-                <div className="flex items-center justify-center">
-                  <LoadingSpinner size="lg" />
-                  <span className="ml-2 text-sm text-gray-500">Loading Google Sign-In...</span>
+          <div className="card animate-slide-up">
+            <div className="card-body">
+              <div className="text-center space-y-6">
+                <div className="space-y-4">
+                  <div id="google-signin-button" className="flex justify-center" />
+                  {!isGoogleLoaded && (
+                    <div className="flex items-center justify-center p-4">
+                      <LoadingSpinner size="lg" />
+                      <span className="ml-3 text-sm text-gray-500 font-medium">Loading Google Sign-In...</span>
+                    </div>
+                  )}
+                  {isGoogleLoaded && (!googleOAuthConfig.clientId || googleOAuthConfig.clientId === 'your-google-client-id-here') && (
+                    <div className="text-center p-4 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl">
+                      <div className="p-2 rounded-full bg-red-100 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                        <span className="text-red-600 font-bold">!</span>
+                      </div>
+                      <p className="text-sm text-red-800 font-medium">
+                        Google OAuth not configured. Please set GOOGLE_CLIENT_ID environment variable.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-              {isGoogleLoaded && (!googleOAuthConfig.clientId || googleOAuthConfig.clientId === 'your-google-client-id-here') && (
-                <div className="text-center p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-800">
-                    Google OAuth not configured. Please set GOOGLE_CLIENT_ID environment variable.
-                  </p>
-                </div>
-              )}
+              </div>
             </div>
           </div>
 

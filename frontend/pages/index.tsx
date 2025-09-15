@@ -148,26 +148,29 @@ const Dashboard: React.FC = () => {
       <Layout>
         <div className="space-y-6">
             {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold gradient-text mb-2">Dashboard</h1>
+              <p className="text-lg text-gray-600">Welcome to your CRM overview</p>
             </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {statCards.map((card) => (
-              <div key={card.name} className="card">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            {statCards.map((card, index) => (
+              <div key={card.name} className="card hover-lift animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="card-body">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <card.icon className="h-8 w-8 text-primary-600" />
+                      <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg">
+                        <card.icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
-                    <div className="ml-5 w-0 flex-1">
+                    <div className="ml-4 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
+                        <dt className="text-sm font-semibold text-gray-600 truncate">
                           {card.name}
                         </dt>
                         <dd className="flex flex-col">
-                          <div className="text-2xl font-semibold text-gray-900">
+                          <div className="text-3xl font-bold text-gray-900">
                             {card.value}
                           </div>
                           {card.subtitle && (
@@ -187,24 +190,29 @@ const Dashboard: React.FC = () => {
           {/* Recent Activity */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Recent Customers */}
-            <div className="card">
+            <div className="card hover-lift animate-slide-up">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Recent Customers</h3>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 mr-3">
+                    <UsersIcon className="h-5 w-5 text-white" />
+                  </div>
+                  Recent Customers
+                </h3>
               </div>
               <div className="card-body">
                 <div className="space-y-4">
                   {customerStats?.data?.data?.recentCustomers && customerStats.data.data.recentCustomers.length > 0 ? (
-                    customerStats.data.data.recentCustomers.slice(0, 5).map((customer: any) => (
-                      <div key={customer.id} className="flex items-center space-x-3">
+                    customerStats.data.data.recentCustomers.slice(0, 5).map((customer: any, index: number) => (
+                      <div key={customer.id} className="flex items-center space-x-4 p-3 rounded-xl hover:bg-blue-50/50 transition-colors duration-200" style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className="flex-shrink-0">
-                          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-primary-600">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                            <span className="text-sm font-bold text-white">
                               {customer.name?.charAt(0) || customer.email.charAt(0)}
                             </span>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
                             {customer.name || customer.email}
                           </p>
                           <p className="text-sm text-gray-500">
@@ -214,7 +222,10 @@ const Dashboard: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
+                    <div className="text-center py-8">
+                      <div className="p-4 rounded-full bg-gray-100 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <UsersIcon className="h-8 w-8 text-gray-400" />
+                      </div>
                       <p className="text-sm text-gray-500">No recent customers found</p>
                     </div>
                   )}
@@ -223,27 +234,32 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Campaign Performance */}
-            <div className="card">
+            <div className="card hover-lift animate-slide-up">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Campaign Performance</h3>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 mr-3">
+                    <ChartBarIcon className="h-5 w-5 text-white" />
+                  </div>
+                  Campaign Performance
+                </h3>
               </div>
               <div className="card-body">
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Total Campaigns</span>
-                    <span className="text-sm font-medium text-gray-900">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <span className="text-sm font-semibold text-gray-600">Total Campaigns</span>
+                    <span className="text-2xl font-bold text-gray-900">
                       {stats?.campaigns.total || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Running</span>
-                    <span className="text-sm font-medium text-green-600">
+                  <div className="flex justify-between items-center p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50">
+                    <span className="text-sm font-semibold text-gray-600">Running</span>
+                    <span className="text-2xl font-bold text-green-600">
                       {stats?.campaigns.running || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Completed</span>
-                    <span className="text-sm font-medium text-blue-600">
+                  <div className="flex justify-between items-center p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
+                    <span className="text-sm font-semibold text-gray-600">Completed</span>
+                    <span className="text-2xl font-bold text-purple-600">
                       {stats?.campaigns.completed || 0}
                     </span>
                   </div>
