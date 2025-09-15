@@ -65,7 +65,7 @@ app.get('/health', (req, res) => {
 
 // API health check for Railway
 app.get('/api/health', (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     data: {
       status: 'OK',
@@ -74,6 +74,11 @@ app.get('/api/health', (req, res) => {
       environment: process.env.NODE_ENV || 'development'
     },
   });
+});
+
+// Simple health check for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
 });
 
 // API routes
