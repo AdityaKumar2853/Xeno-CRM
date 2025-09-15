@@ -6,7 +6,7 @@ const isVercel = typeof window !== 'undefined' && window.location.hostname.inclu
 
 // Create axios instance
 const api = axios.create({
-  baseURL: isVercel ? '/api' : `${API_URL}/api`,
+  baseURL: '/api', // Always use relative URLs for Vercel
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
