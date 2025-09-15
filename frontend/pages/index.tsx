@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
+import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -273,4 +274,16 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+// Use dynamic import to prevent hydration issues
+const DynamicDashboard = dynamic(() => Promise.resolve(Dashboard), {
+  ssr: false,
+  loading: () => (
+    <Layout>
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner size="lg" />
+      </div>
+    </Layout>
+  )
+});
+
+export default DynamicDashboard;

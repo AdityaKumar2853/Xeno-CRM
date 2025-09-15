@@ -14,6 +14,7 @@ const Login: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to dashboard...');
       router.push('/');
     } else {
       // Reset Google OAuth state when not authenticated
@@ -158,9 +159,13 @@ const Login: React.FC = () => {
       const result = await googleLogin(credential);
       console.log('Google login result:', result);
       
-      toast.success('Login successful!');
-      console.log('Redirecting to dashboard...');
-      router.push('/');
+      toast.success(`Welcome back, ${result.user.name || result.user.email}!`);
+      console.log('Login successful, redirecting to dashboard...');
+      
+      // Small delay to show success message
+      setTimeout(() => {
+        router.push('/');
+      }, 500);
     } catch (error: any) {
       console.error('Google login failed:', error);
       console.error('Error details:', {

@@ -27,6 +27,16 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     }
   }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);
 
+  // Add a small delay to prevent race conditions
+  useEffect(() => {
+    if (!isLoading && requireAuth && !isAuthenticated) {
+      const timer = setTimeout(() => {
+        router.push(redirectTo);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

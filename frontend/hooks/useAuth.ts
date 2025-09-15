@@ -64,7 +64,9 @@ export const useAuth = () => {
       }
     };
 
-    initAuth();
+    // Add a small delay to ensure DOM is ready
+    const timer = setTimeout(initAuth, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Google login
