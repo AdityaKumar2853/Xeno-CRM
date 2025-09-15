@@ -13,7 +13,8 @@
     "test:coverage": "jest --coverage",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "db:setup": "node scripts/setup-db.js"
   },
   "dependencies": {
     "next": "^14.0.4",
