@@ -370,11 +370,11 @@ const Segments: React.FC = () => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto z-[60]">
               <div className="flex items-center justify-center min-h-screen p-4">
                 <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
-                <div className="mt-3">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    {editingSegment ? 'Edit Segment' : 'Add New Segment'}
-                  </h3>
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      {editingSegment ? 'Edit Segment' : 'Add New Segment'}
+                    </h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Name</label>
                       <input
@@ -412,23 +412,24 @@ const Segments: React.FC = () => {
                         Supported formats: field operator value (e.g., total_spent &gt; 10000, email contains @gmail.com)
                       </p>
                     </div>
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={createSegmentMutation.isLoading || updateSegmentMutation.isLoading}
-                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
-                      >
-                        {createSegmentMutation.isLoading || updateSegmentMutation.isLoading ? 'Saving...' : 'Save'}
-                      </button>
-                    </div>
-                  </form>
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowModal(false)}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={createSegmentMutation.isLoading || updateSegmentMutation.isLoading}
+                          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          {createSegmentMutation.isLoading || updateSegmentMutation.isLoading ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
