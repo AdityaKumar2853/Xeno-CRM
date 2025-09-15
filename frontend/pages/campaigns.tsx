@@ -117,15 +117,6 @@ const Campaigns: React.FC = () => {
     }
   );
 
-  // Debug logging for segments
-  console.log('🔍 Segments Debug:', {
-    segments,
-    segmentsError,
-    segmentsLoading,
-    segmentsData: segments?.data,
-    segmentsDataData: segments?.data?.data,
-    segmentsLength: segments?.data?.data?.length
-  });
 
 
   // Show loading until client-side hydration is complete
@@ -426,14 +417,11 @@ const Campaigns: React.FC = () => {
                         required
                       >
                         <option value="">Select a segment</option>
-                        {segments?.data?.data?.map((segment: any) => {
-                          console.log('Rendering segment:', segment);
-                          return (
-                            <option key={segment.id} value={segment.id}>
-                              {segment.name}
-                            </option>
-                          );
-                        })}
+                        {segments?.data?.data?.map((segment: any) => (
+                          <option key={segment.id} value={segment.id}>
+                            {segment.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
