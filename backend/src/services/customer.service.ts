@@ -257,13 +257,6 @@ export class CustomerService {
 
   static async getCustomerStats(): Promise<any> {
     try {
-      const cacheKey = 'customer_stats';
-      const cachedStats = await redisUtils.get(cacheKey);
-
-      if (cachedStats) {
-        return cachedStats;
-      }
-
       const [
         totalCustomers,
         totalSpent,
@@ -298,6 +291,7 @@ export class CustomerService {
             id: true,
             name: true,
             email: true,
+            totalSpent: true,
             createdAt: true,
           },
         }).catch(() => []),
@@ -311,9 +305,6 @@ export class CustomerService {
         customersByCountry,
         recentCustomers,
       };
-
-      // Cache for 5 minutes
-      await redisUtils.set(cacheKey, stats, 300);
 
       return stats;
     } catch (error) {

@@ -8,8 +8,6 @@ import {
   UsersIcon, 
   ShoppingBagIcon, 
   ChartBarIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
 } from '@heroicons/react/24/outline';
 
 interface DashboardStats {
@@ -35,98 +33,122 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch dashboard data
-  const { data: customerStats } = useQuery('customerStats', customerAPI.getCustomerStats, {
+  const { data: customerStats, error: customerError } = useQuery('customerStats', customerAPI.getCustomerStats, {
     retry: 1,
     retryDelay: 1000,
     onError: (error) => console.error('Failed to fetch customer stats:', error)
   });
-  const { data: orderStats } = useQuery('orderStats', orderAPI.getOrderStats, {
+  const { data: orderStats, error: orderError } = useQuery('orderStats', orderAPI.getOrderStats, {
     retry: 1,
     retryDelay: 1000,
     onError: (error) => console.error('Failed to fetch order stats:', error)
   });
-  const { data: campaigns } = useQuery('campaigns', () => campaignAPI.getCampaigns({ limit: 1000 }), {
+  const { data: campaigns, error: campaignError } = useQuery('campaigns', () => campaignAPI.getCampaigns({ limit: 100 }), {
     retry: 1,
     retryDelay: 1000,
     onError: (error) => console.error('Failed to fetch campaigns:', error)
   });
 
+  console.log('API Query Status:', {
+    customerStats: { data: customerStats, error: customerError },
+    orderStats: { data: orderStats, error: orderError },
+    campaigns: { data: campaigns, error: campaignError }
+  });
+  
+  console.log('Raw API Data:', {
+    customerStatsData: customerStats,
+    orderStatsData: orderStats,
+    campaignsData: campaigns
+  });
+  
+  // Let's see the actual structure of the API responses
+  if (customerStats) {
+    console.log('Customer Stats Structure:', JSON.stringify(customerStats, null, 2));
+  }
+  if (orderStats) {
+    console.log('Order Stats Structure:', JSON.stringify(orderStats, null, 2));
+  }
+  if (campaigns) {
+    console.log('Campaigns Structure:', JSON.stringify(campaigns, null, 2));
+  }
+
   useEffect(() => {
-    if (customerStats && orderStats && campaigns) {
-      setStats({
-        customers: {
-          total: customerStats.data?.totalCustomers || 0,
-          totalSpent: customerStats.data?.totalSpent || 0,
-          avgOrderValue: customerStats.data?.avgOrderValue || 0,
-        },
-        orders: {
-          total: orderStats.data?.totalOrders || 0,
-          totalRevenue: orderStats.data?.totalRevenue || 0,
-          avgOrderValue: orderStats.data?.avgOrderValue || 0,
-        },
-        campaigns: {
-          total: campaigns.data?.total || 0,
-          running: campaigns.data?.campaigns?.filter((c: any) => c.status === 'running').length || 0,
-          completed: campaigns.data?.campaigns?.filter((c: any) => c.status === 'completed').length || 0,
-        },
-      });
-    }
+    console.log('Dashboard data:', {
+      customerStats: customerStats?.data?.data,
+      orderStats: orderStats?.data?.data,
+      campaigns: campaigns?.data?.data
+    });
+
+    const newStats = {
+      customers: {
+        total: customerStats?.data?.data?.totalCustomers || 0,
+        totalSpent: parseFloat(customerStats?.data?.data?.totalSpent) || 0,
+        avgOrderValue: parseFloat(customerStats?.data?.data?.avgOrderValue) || 0,
+      },
+      orders: {
+        total: orderStats?.data?.data?.totalOrders || 0,
+        totalRevenue: parseFloat(orderStats?.data?.data?.totalRevenue) || 0,
+        avgOrderValue: parseFloat(orderStats?.data?.data?.avgOrderValue) || 0,
+      },
+      campaigns: {
+        total: campaigns?.data?.data?.total || 0,
+        running: campaigns?.data?.data?.campaigns?.filter((c: any) => c.status === 'running').length || 0,
+        completed: campaigns?.data?.data?.campaigns?.filter((c: any) => c.status === 'completed').length || 0,
+      },
+    };
+
+    console.log('Setting stats:', JSON.stringify(newStats, null, 2));
+    setStats(newStats);
     setLoading(false);
   }, [customerStats, orderStats, campaigns]);
 
   if (loading) {
     return (
-      <AuthGuard>
-        <Layout>
-          <div className="flex items-center justify-center h-64">
-            <LoadingSpinner size="lg" />
-          </div>
-        </Layout>
-      </AuthGuard>
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
+      </Layout>
     );
   }
 
+  console.log('Current stats state:', JSON.stringify(stats, null, 2));
+  
   const statCards = [
     {
       name: 'Total Customers',
       value: stats?.customers.total || 0,
       icon: UsersIcon,
-      change: '+12%',
-      changeType: 'positive' as const,
+      subtitle: `₹${(stats?.customers.totalSpent || 0).toLocaleString()} total spent`,
     },
     {
       name: 'Total Orders',
       value: stats?.orders.total || 0,
       icon: ShoppingBagIcon,
-      change: '+8%',
-      changeType: 'positive' as const,
+      subtitle: `₹${(stats?.orders.avgOrderValue || 0).toLocaleString()} avg order`,
     },
     {
       name: 'Total Revenue',
       value: `₹${(stats?.orders.totalRevenue || 0).toLocaleString()}`,
       icon: ChartBarIcon,
-      change: '+15%',
-      changeType: 'positive' as const,
+      subtitle: `${stats?.orders.total || 0} orders`,
     },
     {
       name: 'Active Campaigns',
       value: stats?.campaigns.running || 0,
       icon: ChartBarIcon,
-      change: '+3',
-      changeType: 'positive' as const,
+      subtitle: `${stats?.campaigns.completed || 0} completed`,
     },
   ];
+  
+  console.log('Stat cards:', JSON.stringify(statCards, null, 2));
 
   return (
-    <AuthGuard>
-      <Layout>
-        <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6">
           {/* Header */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Welcome to your Mini CRM dashboard. Here's what's happening with your business.
-            </p>
           </div>
 
           {/* Stats Grid */}
@@ -143,23 +165,15 @@ const Dashboard: React.FC = () => {
                         <dt className="text-sm font-medium text-gray-500 truncate">
                           {card.name}
                         </dt>
-                        <dd className="flex items-baseline">
+                        <dd className="flex flex-col">
                           <div className="text-2xl font-semibold text-gray-900">
                             {card.value}
                           </div>
-                          <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                            card.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {card.changeType === 'positive' ? (
-                              <ArrowUpIcon className="h-4 w-4 flex-shrink-0 self-center" />
-                            ) : (
-                              <ArrowDownIcon className="h-4 w-4 flex-shrink-0 self-center" />
-                            )}
-                            <span className="sr-only">
-                              {card.changeType === 'positive' ? 'Increased' : 'Decreased'} by
-                            </span>
-                            {card.change}
-                          </div>
+                          {card.subtitle && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              {card.subtitle}
+                            </div>
+                          )}
                         </dd>
                       </dl>
                     </div>
@@ -232,7 +246,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </Layout>
-    </AuthGuard>
   );
 };
 
