@@ -155,7 +155,7 @@ export const authUtils = {
 
 // Google OAuth configuration
 export const googleOAuthConfig = {
-  clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+  clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '7230563022-th5imecc10i0pgcv4esc0dke1v9s2pf2.apps.googleusercontent.com',
   scope: 'openid email profile',
   redirectUri: typeof window !== 'undefined' ? window.location.origin : '',
 };

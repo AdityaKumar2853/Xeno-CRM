@@ -38,6 +38,7 @@ export const config = {
   ai: {
     openaiApiKey: process.env['OPENAI_API_KEY'] || '',
     openaiModel: process.env['OPENAI_MODEL'] || 'gpt-3.5-turbo',
+    geminiApiKey: process.env['GEMINI_API_KEY'] || '',
   },
   
   // Message Broker Configuration
@@ -64,7 +65,12 @@ export const config = {
   
   // CORS Configuration
   cors: {
-    origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+    origin: [
+      process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
+      'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
+      /^https:\/\/xeno-crm.*\.vercel\.app$/, // Allow all Vercel preview deployments
+    ],
     credentials: true,
   },
   
