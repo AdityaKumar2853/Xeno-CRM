@@ -68,6 +68,7 @@ model Segment {
   userId        String   @map("userId")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  campaigns     Campaign[]
 
   @@map("segments")
 }
@@ -87,6 +88,7 @@ model Campaign {
   openRate     Float     @default(0)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  segment      Segment   @relation(fields: [segmentId], references: [id], onDelete: Cascade)
 
   @@map("campaigns")
 }
