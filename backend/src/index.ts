@@ -33,8 +33,38 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: config.cors.origin,
-  credentials: config.cors.credentials,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
+      'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
+      'https://xeno-crm-v5-73ygmd9th-aditya-kumars-projects-9c44bbfe.vercel.app',
+    ];
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Check if origin matches Vercel pattern
+    if (/^https:\/\/xeno-crm.*\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    
+    // Check if origin matches environment variable
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS: Blocked origin:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // Rate limiting
@@ -46,6 +76,37 @@ app.use(morgan('combined', {
     write: (message: string) => logger.info(message.trim()),
   },
 }));
+
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
+// Add CORS headers to all responses
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
+    'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
+    'https://xeno-crm-v5-73ygmd9th-aditya-kumars-projects-9c44bbfe.vercel.app',
+  ];
+  
+  if (origin && (allowedOrigins.includes(origin) || /^https:\/\/xeno-crm.*\.vercel\.app$/.test(origin))) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

@@ -63,12 +63,13 @@ export const config = {
     max: 100, // limit each IP to 100 requests per windowMs
   },
   
-  // CORS Configuration
+  // CORS Configuration - Updated for Vercel deployment
   cors: {
     origin: [
       process.env['FRONTEND_URL'] || 'http://localhost:3000',
       'https://xeno-crm-v5-a23ra2cc0-aditya-kumars-projects-9c44bbfe.vercel.app',
       'https://xeno-crm-v5-4v23h7lhz-aditya-kumars-projects-9c44bbfe.vercel.app',
+      'https://xeno-crm-v5-73ygmd9th-aditya-kumars-projects-9c44bbfe.vercel.app', // Added current deployment
       /^https:\/\/xeno-crm.*\.vercel\.app$/, // Allow all Vercel preview deployments
     ],
     credentials: true,

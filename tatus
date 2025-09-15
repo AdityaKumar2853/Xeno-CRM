@@ -1,0 +1,5 @@
+[33m9fc53ca[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix CORS and Google OAuth issues
+[33mde337ac[m Add OAuth test page for debugging
+[33mf7612e3[m Fix Vercel output directory for root directory setup
+[33m6fa6687[m Fix Vercel monorepo configuration
+[33m427193f[m Fix Vercel output directory configuration
