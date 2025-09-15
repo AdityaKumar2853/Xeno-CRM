@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { customerAPI } from '@/lib/api';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -15,6 +17,8 @@ const Customers: React.FC = () => {
   const [pageSize] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  
+  const { dialogState, showConfirmDialog, closeDialog, handleConfirm } = useConfirmDialog();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -168,9 +172,16 @@ const Customers: React.FC = () => {
   };
 
   const handleDeleteCustomer = (customerId: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomerMutation.mutate(customerId);
-    }
+    showConfirmDialog({
+      title: 'Delete Customer',
+      message: 'Are you sure you want to delete this customer? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: () => {
+        deleteCustomerMutation.mutate(customerId);
+      },
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -430,6 +441,18 @@ const Customers: React.FC = () => {
           )}
         </div>
       </Layout>
+      
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        onConfirm={handleConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        type={dialogState.type}
+      />
     </AuthGuard>
   );
 };

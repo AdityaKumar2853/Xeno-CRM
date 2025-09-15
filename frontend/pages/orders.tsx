@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { orderAPI, customerAPI } from '@/lib/api';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -15,6 +17,8 @@ const Orders: React.FC = () => {
   const [pageSize] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
+  
+  const { dialogState, showConfirmDialog, closeDialog, handleConfirm } = useConfirmDialog();
   const [formData, setFormData] = useState({
     customerId: '',
     orderNumber: '',
@@ -157,9 +161,16 @@ const Orders: React.FC = () => {
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    if (window.confirm('Are you sure you want to delete this order?')) {
-      deleteOrderMutation.mutate(orderId);
-    }
+    showConfirmDialog({
+      title: 'Delete Order',
+      message: 'Are you sure you want to delete this order? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: () => {
+        deleteOrderMutation.mutate(orderId);
+      },
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -390,6 +401,18 @@ const Orders: React.FC = () => {
           )}
         </div>
       </Layout>
+      
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        onConfirm={handleConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        type={dialogState.type}
+      />
     </AuthGuard>
   );
 };
