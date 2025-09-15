@@ -1,16 +1,46 @@
-import { dataStore } from '../../../lib/dataStore';
+import { PrismaClient } from '@prisma/client';
 
-export default function handler(req, res) {
+const prisma = new PrismaClient();
+
+export default async function handler(req, res) {
   try {
-    const stats = dataStore.getStats();
-    res.status(200).json({
-      success: true,
-      data: stats
-    });
+    if (req.method === 'GET') {
+      const [
+        totalCustomers,
+        totalOrders,
+        totalRevenue,
+        recentCustomers,
+      ] = await Promise.all([
+        prisma.customer.count(),
+        prisma.order.count(),
+        prisma.order.aggregate({
+          _sum: { amount: true },
+        }),
+        prisma.customer.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          totalCustomers,
+          totalOrders,
+          totalRevenue: totalRevenue._sum.amount || 0,
+          recentCustomers,
+        },
+      });
+    } else {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+    }
   } catch (error) {
+    console.error('Customer stats error:', error);
     res.status(500).json({
       success: false,
-      error: { message: 'Failed to fetch statistics' }
+      error: { message: 'Internal server error' },
     });
+  } finally {
+    await prisma.$disconnect();
   }
 }

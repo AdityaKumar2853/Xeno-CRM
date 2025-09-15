@@ -1,20 +1,7 @@
 import axios from 'axios';
 
-// Use Railway backend for data operations, local API for auth
-const BACKEND_URL = 'https://xeno-crm-backend-production.up.railway.app';
-const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('xeno-crm-v5.vercel.app');
-
-// Create axios instance for data operations (Railway backend)
+// Use local API for all operations (no CORS issues)
 const api = axios.create({
-  baseURL: isVercel ? BACKEND_URL : 'http://localhost:3001',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Create axios instance for auth operations (local API to avoid CORS)
-const authApi = axios.create({
   baseURL: '/api',
   timeout: 10000,
   headers: {
@@ -50,14 +37,14 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API (uses local API to avoid CORS)
+// Auth API
 export const authAPI = {
-  googleLogin: (token: string) => authApi.post('/auth/google', { token }),
-  refreshToken: (token: string) => authApi.post('/auth/refresh', { token }),
-  logout: () => authApi.post('/auth/logout'),
-  getProfile: () => authApi.get('/auth/profile'),
-  updateProfile: (data: any) => authApi.put('/auth/profile', data),
-  verifyToken: () => authApi.get('/auth/verify'),
+  googleLogin: (token: string) => api.post('/auth/google', { token }),
+  refreshToken: (token: string) => api.post('/auth/refresh', { token }),
+  logout: () => api.post('/auth/logout'),
+  getProfile: () => api.get('/auth/profile'),
+  updateProfile: (data: any) => api.put('/auth/profile', data),
+  verifyToken: () => api.get('/auth/verify'),
 };
 
 // Customer API
@@ -159,9 +146,9 @@ export const ingestAPI = {
   getStats: () => api.get('/ingest/stats'),
 };
 
-// Chat API (uses local API to avoid CORS)
+// Chat API
 export const chatAPI = {
-  generateContent: (message: string) => authApi.post('/chat/generate', { message }),
+  generateContent: (message: string) => api.post('/chat/generate', { message }),
 };
 
 export default api;

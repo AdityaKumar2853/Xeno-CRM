@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  googleId  String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  segments     Segment[]
+  campaigns    Campaign[]
+
+  @@map("users")
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  totalSpend  Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  orders Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  customerId String
+  amount     Decimal  @db.Decimal(10, 2)
+  items      Json     @default("[]")
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model Segment {
+  id            String   @id @default(cuid())
+  name          String
+  rules         String
+  customerCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  campaigns Campaign[]
+
+  @@map("segments")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  message     String
+  segmentId   String?
+  status      String   @default("draft")
+  sentCount   Int      @default(0)
+  openRate    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  segment Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  @@map("campaigns")
+}
