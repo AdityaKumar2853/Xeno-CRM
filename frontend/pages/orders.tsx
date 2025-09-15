@@ -315,13 +315,14 @@ const Orders: React.FC = () => {
 
           {/* Order Modal */}
           {showModal && (
-            <div className="fixed top-0 left-0 right-0 bottom-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-screen w-screen z-[60]" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div className="mt-3">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    {editingOrder ? 'Edit Order' : 'Add New Order'}
-                  </h3>
-                  <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto z-[60]">
+              <div className="flex items-center justify-center min-h-screen p-4">
+                <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
+                  <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      {editingOrder ? 'Edit Order' : 'Add New Order'}
+                    </h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Customer</label>
                       <select
@@ -332,7 +333,7 @@ const Orders: React.FC = () => {
                         required
                       >
                         <option value="">Select a customer</option>
-                        {customers?.data?.data?.customers?.map((customer: any) => (
+                        {customers?.data?.data?.map((customer: any) => (
                           <option key={customer.id} value={customer.id}>
                             {customer.name || customer.email}
                           </option>
@@ -378,23 +379,24 @@ const Orders: React.FC = () => {
                         <option value="refunded">Refunded</option>
                       </select>
                     </div>
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={createOrderMutation.isLoading || updateOrderMutation.isLoading}
-                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
-                      >
-                        {createOrderMutation.isLoading || updateOrderMutation.isLoading ? 'Saving...' : 'Save'}
-                      </button>
-                    </div>
-                  </form>
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowModal(false)}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={createOrderMutation.isLoading || updateOrderMutation.isLoading}
+                          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          {createOrderMutation.isLoading || updateOrderMutation.isLoading ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
