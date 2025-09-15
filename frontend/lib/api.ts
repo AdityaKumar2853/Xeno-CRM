@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Use relative URLs for Vercel deployment, absolute for local development
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('xeno-crm-v5.vercel.app');
 
 // Create axios instance
 const api = axios.create({
