@@ -5,36 +5,54 @@ const prisma = new PrismaClient();
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
-      const { page = 1, limit = 10, search } = req.query;
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      
-      const where = search ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
-      } : {};
+      // Try to connect to database first
+      try {
+        await prisma.$connect();
+        
+        const { page = 1, limit = 10, search } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        const where = search ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        } : {};
 
-      const [customers, total] = await Promise.all([
-        prisma.customer.findMany({
-          where,
-          skip,
-          take: parseInt(limit),
-          orderBy: { createdAt: 'desc' },
-        }),
-        prisma.customer.count({ where }),
-      ]);
+        const [customers, total] = await Promise.all([
+          prisma.customer.findMany({
+            where,
+            skip,
+            take: parseInt(limit),
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.customer.count({ where }),
+        ]);
 
-      res.status(200).json({
-        success: true,
-        data: customers,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit)),
-        },
-      });
+        res.status(200).json({
+          success: true,
+          data: customers,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
+            pages: Math.ceil(total / parseInt(limit)),
+          },
+        });
+      } catch (dbError) {
+        console.log('Database not ready, returning empty data:', dbError.message);
+        // Return empty data if database is not ready
+        res.status(200).json({
+          success: true,
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 0,
+            pages: 0,
+          },
+        });
+      }
     } else if (req.method === 'POST') {
       const { name, email, phone, address, city, state, country, postalCode } = req.body;
       

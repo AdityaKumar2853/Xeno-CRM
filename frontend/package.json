@@ -39,6 +39,7 @@
     "react-query": "^3.39.3",
     "react-hot-toast": "^2.4.1",
     "date-fns": "^2.30.0",
+    "google-auth-library": "^9.4.0",
     "recharts": "^2.8.0",
     "react-beautiful-dnd": "^13.1.1",
     "framer-motion": "^10.16.16",

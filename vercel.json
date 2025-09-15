@@ -10,5 +10,9 @@
   },
   "env": {
     "DATABASE_URL": "@database_url"
+  },
+  "github": {
+    "enabled": true,
+    "autoAlias": false
   }
 }
