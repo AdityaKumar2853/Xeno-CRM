@@ -56,12 +56,12 @@ const Dashboard: React.FC = () => {
       customers: {
         total: customerStats?.data?.data?.totalCustomers || 0,
         totalSpent: parseFloat(customerStats?.data?.data?.totalRevenue) || 0,
-        avgOrderValue: parseFloat(orderStats?.data?.data?.avgOrderValue) || 0,
+        avgOrderValue: parseFloat(orderStats?.data?.data?.averageOrderValue) || 0,
       },
       orders: {
         total: orderStats?.data?.data?.totalOrders || 0,
         totalRevenue: parseFloat(orderStats?.data?.data?.totalRevenue) || 0,
-        avgOrderValue: parseFloat(orderStats?.data?.data?.avgOrderValue) || 0,
+        avgOrderValue: parseFloat(orderStats?.data?.data?.averageOrderValue) || 0,
       },
       campaigns: {
         total: campaigns?.data?.data?.length || 0,
