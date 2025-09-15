@@ -266,9 +266,9 @@ export const googleOAuth = {
         }
       );
       console.log('✅ Google Sign-In button rendered successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error rendering Google Sign-In button:', error);
-      onError?.(error.message || 'Failed to render Google Sign-In button');
+      onError?.(error?.message || 'Failed to render Google Sign-In button');
     }
   },
 
