@@ -1,10 +1,12 @@
 import axios from 'axios';
 
+// Use relative URLs for Vercel deployment, absolute for local development
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
 
 // Create axios instance
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: isVercel ? '/api' : `${API_URL}/api`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
