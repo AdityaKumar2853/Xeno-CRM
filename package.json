@@ -1,25 +1,13 @@
 {
-  "name": "xeno-crm-fullstack",
+  "name": "xeno-crm-database-export",
   "version": "1.0.0",
-  "description": "Full-stack CRM application deployed on Vercel",
-  "main": "api/index.js",
+  "description": "Database export utility for Xeno CRM",
+  "main": "export-database.js",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
-    "start": "cd frontend && npm start",
-    "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm run dev\"",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "export": "node export-database.js",
+    "install-deps": "npm install mysql2"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
-    "express-rate-limit": "^7.1.5"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "mysql2": "^3.6.5"
   }
 }

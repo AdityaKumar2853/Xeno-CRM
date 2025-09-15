@@ -192,24 +192,60 @@ export const googleOAuth = {
 
   // Render Google Sign-In button
   renderButton: (elementId: string, onSuccess: (credential: string) => void, onError?: (error: string) => void): void => {
+    console.log('🎯 renderButton called:', {
+      elementId,
+      hasWindow: typeof window !== 'undefined',
+      hasGoogle: !!(window as any).google,
+      hasGoogleAccounts: !!(window as any).google?.accounts,
+      hasGoogleAccountsId: !!(window as any).google?.accounts?.id,
+    });
+
     if (typeof window === 'undefined' || !(window as any).google) {
-      console.error('Google OAuth not initialized');
+      console.error('❌ Google OAuth not initialized');
       return;
     }
 
     const currentOrigin = window.location.origin;
-    console.log('Current origin:', currentOrigin);
-    console.log('Is Vercel deployment:', googleOAuthConfig.isVercelDeployment);
-    console.log('Matches pattern:', googleOAuthConfig.vercelDomainPattern.test(currentOrigin));
+    console.log('🌐 Environment check:', {
+      currentOrigin,
+      isVercelDeployment: googleOAuthConfig.isVercelDeployment,
+      matchesPattern: googleOAuthConfig.vercelDomainPattern.test(currentOrigin),
+      clientId: googleOAuthConfig.clientId,
+      clientIdLength: googleOAuthConfig.clientId?.length,
+    });
 
+    const element = document.getElementById(elementId);
+    console.log('🎯 Target element:', {
+      elementId,
+      elementFound: !!element,
+      elementType: element?.tagName,
+      elementId: element?.id,
+    });
+
+    if (!element) {
+      console.error('❌ Target element not found:', elementId);
+      onError?.('Target element not found');
+      return;
+    }
+
+    console.log('🔧 Initializing Google OAuth...');
     (window as any).google.accounts.id.initialize({
       client_id: googleOAuthConfig.clientId,
       callback: (response: any) => {
-        console.log('Google OAuth callback received:', response);
+        console.log('📞 Google OAuth callback received:', {
+          hasResponse: !!response,
+          hasCredential: !!response?.credential,
+          credentialLength: response?.credential?.length,
+          credentialPrefix: response?.credential?.substring(0, 20) + '...',
+          fullResponse: response,
+        });
+        
         if (response.credential) {
+          console.log('✅ Calling onSuccess with credential');
           onSuccess(response.credential);
         } else {
-          onError?.('No credential received');
+          console.log('❌ No credential in response, calling onError');
+          onError?.('No credential received from Google');
         }
       },
       auto_select: false,
@@ -217,16 +253,23 @@ export const googleOAuth = {
       use_fedcm_for_prompt: false,
     });
 
-    (window as any).google.accounts.id.renderButton(
-      document.getElementById(elementId),
-      {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'rectangular',
-        logo_alignment: 'left',
-      }
-    );
+    console.log('🎨 Rendering Google Sign-In button...');
+    try {
+      (window as any).google.accounts.id.renderButton(
+        element,
+        {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+        }
+      );
+      console.log('✅ Google Sign-In button rendered successfully');
+    } catch (error) {
+      console.error('❌ Error rendering Google Sign-In button:', error);
+      onError?.(error.message || 'Failed to render Google Sign-In button');
+    }
   },
 
   // Prompt for Google Sign-In
