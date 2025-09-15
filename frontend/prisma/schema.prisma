@@ -23,8 +23,8 @@ model User {
 }
 
 model Customer {
-  id          String   @id @default(cuid())
-  email       String   @unique
+  id          String    @id @default(cuid())
+  email       String    @unique
   name        String?
   phone       String?
   address     String?
@@ -32,9 +32,11 @@ model Customer {
   state       String?
   country     String?
   postalCode  String?
-  totalSpend  Decimal  @default(0) @db.Decimal(10, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  totalSpent  Decimal   @default(0) @db.Decimal(10, 2) @map("totalSpent")
+  totalOrders Int       @default(0) @map("totalOrders")
+  lastOrderAt DateTime? @map("lastOrderAt")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   orders Order[]
@@ -43,13 +45,14 @@ model Customer {
 }
 
 model Order {
-  id         String   @id @default(cuid())
-  customerId String
-  amount     Decimal  @db.Decimal(10, 2)
-  items      Json     @default("[]")
-  status     String   @default("pending")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  customerId   String   @map("customerId")
+  orderNumber  String   @map("orderNumber")
+  totalAmount  Decimal  @db.Decimal(10, 2) @map("totalAmount")
+  status       String   @default("pending")
+  orderDate    DateTime @default(now()) @map("orderDate")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -60,7 +63,9 @@ model Order {
 model Segment {
   id            String   @id @default(cuid())
   name          String
-  rules         String
+  description   String?  @map("description")
+  rules         Json     @map("rules")
+  userId        String   @map("userId")
   customerCount Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -69,15 +74,20 @@ model Segment {
 }
 
 model Campaign {
-  id          String   @id @default(cuid())
-  name        String
-  message     String
-  segmentId   String?
-  status      String   @default("draft")
-  sentCount   Int      @default(0)
-  openRate    Float    @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  name         String
+  description  String?   @map("description")
+  message      String
+  segmentId    String    @map("segmentId")
+  userId       String    @map("userId")
+  status       String    @default("draft")
+  scheduledAt  DateTime? @map("scheduledAt")
+  startedAt    DateTime? @map("startedAt")
+  completedAt  DateTime? @map("completedAt")
+  sentCount    Int       @default(0)
+  openRate     Float     @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("campaigns")
 }

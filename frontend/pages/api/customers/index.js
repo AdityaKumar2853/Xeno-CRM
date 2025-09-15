@@ -83,7 +83,8 @@ export default async function handler(req, res) {
           state,
           country,
           postalCode,
-          totalSpend: 0,
+          totalSpent: 0,
+          totalOrders: 0,
         },
       });
 

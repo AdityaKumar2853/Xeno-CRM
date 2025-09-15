@@ -44,32 +44,36 @@ export default async function handler(req, res) {
         },
       });
     } else if (req.method === 'POST') {
-      const { customerId, amount, items, status = 'pending' } = req.body;
+      const { customerId, totalAmount, orderNumber, status = 'pending' } = req.body;
       
-      if (!customerId || !amount) {
+      if (!customerId || !totalAmount) {
         return res.status(400).json({
           success: false,
-          error: { message: 'Customer ID and amount are required' },
+          error: { message: 'Customer ID and total amount are required' },
         });
       }
 
       const order = await prisma.order.create({
         data: {
-          customerId: parseInt(customerId),
-          amount: parseFloat(amount),
-          items: items || [],
+          customerId: customerId,
+          orderNumber: orderNumber || `ORD-${Date.now()}`,
+          totalAmount: parseFloat(totalAmount),
           status,
         },
         include: { customer: true },
       });
 
-      // Update customer total spend
+      // Update customer total spent and order count
       await prisma.customer.update({
-        where: { id: parseInt(customerId) },
+        where: { id: customerId },
         data: {
-          totalSpend: {
-            increment: parseFloat(amount),
+          totalSpent: {
+            increment: parseFloat(totalAmount),
           },
+          totalOrders: {
+            increment: 1,
+          },
+          lastOrderAt: new Date(),
         },
       });
 
