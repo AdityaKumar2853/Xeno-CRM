@@ -126,11 +126,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
                     {user && user.avatar ? (
-                      <img
-                        className="h-8 w-8 rounded-full"
-                        src={user.avatar}
-                        alt={user.name || user.email}
-                      />
+                      <>
+                        {console.log('User avatar data:', { user, avatar: user.avatar })}
+                        <img
+                          className="h-8 w-8 rounded-full"
+                          src={user.avatar}
+                          alt={user.name || user.email}
+                          onError={(e) => {
+                            console.error('Avatar image failed to load:', user.avatar);
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </>
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
                         <span className="text-sm font-medium text-primary-600">

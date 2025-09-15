@@ -22,16 +22,6 @@ export const useAuth = () => {
         const authData = authUtils.getAuthData();
         
         if (authData.isAuthenticated) {
-          // Skip token verification for test tokens
-          if (authData.token === 'test-token-123') {
-            console.log('Test token detected, skipping verification');
-            setAuthState({
-              ...authData,
-              isLoading: false,
-            });
-            return;
-          }
-          
           // Verify token is still valid
           try {
             const isValid = await authUtils.verifyToken();

@@ -45,6 +45,20 @@ const Login: React.FC = () => {
             cancel_on_tap_outside: false,
             use_fedcm_for_prompt: false,
           });
+          
+          // Re-render the button
+          const buttonElement = document.getElementById('google-signin-button');
+          if (buttonElement) {
+            buttonElement.innerHTML = ''; // Clear existing button
+            (window as any).google.accounts.id.renderButton(buttonElement, {
+              theme: 'outline',
+              size: 'large',
+              text: 'signin_with',
+              shape: 'rectangular',
+              logo_alignment: 'left',
+            });
+          }
+          
           setIsGoogleLoaded(true);
           return;
         }
@@ -204,24 +218,6 @@ const Login: React.FC = () => {
                   </p>
                 </div>
               )}
-              <button
-                onClick={() => {
-                  if (typeof window !== 'undefined' && (window as any).google) {
-                    console.log('Triggering Google OAuth prompt...');
-                    (window as any).google.accounts.id.prompt();
-                  } else {
-                    toast.error('Google OAuth not initialized');
-                  }
-                }}
-                disabled={isLoading || !isGoogleLoaded}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <LoadingSpinner size="sm" />
-                ) : (
-                  'Sign in with Google'
-                )}
-              </button>
             </div>
           </div>
 

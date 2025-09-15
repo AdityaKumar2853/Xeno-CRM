@@ -123,6 +123,11 @@ const Orders: React.FC = () => {
   }
 
   const ordersData = orders?.data?.data?.orders || [];
+  
+  // Debug logging
+  console.log('Orders query result:', orders);
+  console.log('Orders data:', ordersData);
+  console.log('Orders data length:', ordersData.length);
 
   // Helper functions
   const resetForm = () => {
