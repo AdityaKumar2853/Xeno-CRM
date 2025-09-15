@@ -63,6 +63,19 @@ app.get('/health', (req, res) => {
   });
 });
 
+// API health check for Railway
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      status: 'OK',
+      message: 'Xeno CRM API is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    },
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
