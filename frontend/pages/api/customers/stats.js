@@ -18,7 +18,7 @@ export default async function handler(req, res) {
           prisma.customer.count(),
           prisma.order.count(),
           prisma.order.aggregate({
-            _sum: { amount: true },
+            _sum: { totalAmount: true },
           }),
           prisma.customer.findMany({
             take: 5,

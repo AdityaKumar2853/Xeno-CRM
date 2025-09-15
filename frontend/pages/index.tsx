@@ -83,8 +83,8 @@ const Dashboard: React.FC = () => {
     const newStats = {
       customers: {
         total: customerStats?.data?.data?.totalCustomers || 0,
-        totalSpent: parseFloat(customerStats?.data?.data?.totalSpent) || 0,
-        avgOrderValue: parseFloat(customerStats?.data?.data?.avgOrderValue) || 0,
+        totalSpent: parseFloat(customerStats?.data?.data?.totalRevenue) || 0,
+        avgOrderValue: parseFloat(orderStats?.data?.data?.avgOrderValue) || 0,
       },
       orders: {
         total: orderStats?.data?.data?.totalOrders || 0,
@@ -92,9 +92,9 @@ const Dashboard: React.FC = () => {
         avgOrderValue: parseFloat(orderStats?.data?.data?.avgOrderValue) || 0,
       },
       campaigns: {
-        total: campaigns?.data?.data?.total || 0,
-        running: campaigns?.data?.data?.campaigns?.filter((c: any) => c.status === 'running').length || 0,
-        completed: campaigns?.data?.data?.campaigns?.filter((c: any) => c.status === 'completed').length || 0,
+        total: campaigns?.data?.data?.length || 0,
+        running: campaigns?.data?.data?.filter((c: any) => c.status === 'running').length || 0,
+        completed: campaigns?.data?.data?.filter((c: any) => c.status === 'completed').length || 0,
       },
     };
 

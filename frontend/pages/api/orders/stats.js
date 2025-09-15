@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         ] = await Promise.all([
           prisma.order.count(),
           prisma.order.aggregate({
-            _sum: { amount: true },
+            _sum: { totalAmount: true },
           }),
           prisma.order.count({
             where: { status: 'pending' },
@@ -27,13 +27,13 @@ export default async function handler(req, res) {
           }),
         ]);
 
-        const averageOrderValue = totalOrders > 0 ? (totalRevenue._sum.amount || 0) / totalOrders : 0;
+        const averageOrderValue = totalOrders > 0 ? (totalRevenue._sum.totalAmount || 0) / totalOrders : 0;
 
         res.status(200).json({
           success: true,
           data: {
             totalOrders,
-            totalRevenue: totalRevenue._sum.amount || 0,
+            totalRevenue: totalRevenue._sum.totalAmount || 0,
             pendingOrders,
             completedOrders,
             averageOrderValue,

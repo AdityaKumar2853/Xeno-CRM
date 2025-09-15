@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
       const prompt = `You are an AI assistant for a CRM system. Help the user with customer insights, data analysis, content generation, and answer questions about their CRM. Be helpful, professional, and concise.
 
