@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
@@ -8,7 +8,9 @@ import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons
 import toast from 'react-hot-toast';
 
 const Orders: React.FC = () => {
+  const [isClient, setIsClient] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [showModal, setShowModal] = useState(false);
@@ -21,6 +23,20 @@ const Orders: React.FC = () => {
   });
 
   const queryClient = useQueryClient();
+
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Get customers for dropdown
   const { data: customers } = useQuery('customers', () => customerAPI.getCustomers({ page: 1, limit: 1000 }));
@@ -66,11 +82,11 @@ const Orders: React.FC = () => {
   });
 
   const { data: orders, isLoading, error } = useQuery(
-    ['orders', currentPage, pageSize, searchQuery],
+    ['orders', currentPage, pageSize, debouncedSearchQuery],
     () => orderAPI.getOrders({
       page: currentPage,
       limit: pageSize,
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
     }),
     {
       retry: 1,
@@ -80,6 +96,19 @@ const Orders: React.FC = () => {
       }
     }
   );
+
+  // Show loading until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -93,7 +122,7 @@ const Orders: React.FC = () => {
     );
   }
 
-  const ordersData = orders?.data?.orders || [];
+  const ordersData = orders?.data?.data?.orders || [];
 
   // Helper functions
   const resetForm = () => {
@@ -153,6 +182,11 @@ const Orders: React.FC = () => {
     }));
   };
 
+  // Search input handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <AuthGuard>
       <Layout>
@@ -178,11 +212,13 @@ const Orders: React.FC = () => {
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
+              key="order-search-input"
               type="text"
               placeholder="Search orders..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+              autoComplete="off"
             />
           </div>
 
@@ -280,7 +316,7 @@ const Orders: React.FC = () => {
                         required
                       >
                         <option value="">Select a customer</option>
-                        {customers?.data?.customers?.map((customer: any) => (
+                        {customers?.data?.data?.customers?.map((customer: any) => (
                           <option key={customer.id} value={customer.id}>
                             {customer.name || customer.email}
                           </option>

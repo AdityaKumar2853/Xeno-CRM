@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Layout from '@/components/Layout';
 import AuthGuard from '@/components/AuthGuard';
@@ -8,7 +8,9 @@ import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons
 import toast from 'react-hot-toast';
 
 const Customers: React.FC = () => {
+  const [isClient, setIsClient] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [showModal, setShowModal] = useState(false);
@@ -26,6 +28,20 @@ const Customers: React.FC = () => {
 
   const queryClient = useQueryClient();
 
+  // Ensure we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Create customer mutation
   const createCustomerMutation = useMutation(customerAPI.createCustomer, {
     onSuccess: () => {
@@ -35,6 +51,7 @@ const Customers: React.FC = () => {
       resetForm();
     },
     onError: (error: any) => {
+      console.error('Create customer error:', error);
       toast.error(error.response?.data?.error?.message || 'Failed to create customer');
     },
   });
@@ -50,6 +67,7 @@ const Customers: React.FC = () => {
         resetForm();
       },
       onError: (error: any) => {
+        console.error('Update customer error:', error);
         toast.error(error.response?.data?.error?.message || 'Failed to update customer');
       },
     }
@@ -62,25 +80,42 @@ const Customers: React.FC = () => {
       toast.success('Customer deleted successfully!');
     },
     onError: (error: any) => {
+      console.error('Delete customer error:', error);
       toast.error(error.response?.data?.error?.message || 'Failed to delete customer');
     },
   });
 
   const { data: customers, isLoading, error } = useQuery(
-    ['customers', currentPage, pageSize, searchQuery],
+    ['customers', currentPage, pageSize, debouncedSearchQuery],
     () => customerAPI.getCustomers({
       page: currentPage,
       limit: pageSize,
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
     }),
     {
       retry: 1,
       retryDelay: 1000,
       onError: (error) => {
         console.error('Failed to fetch customers:', error);
+      },
+      onSuccess: (data) => {
+        // Customers fetched successfully
       }
     }
   );
+
+  // Show loading until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <AuthGuard>
+        <Layout>
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+          </div>
+        </Layout>
+      </AuthGuard>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -94,7 +129,7 @@ const Customers: React.FC = () => {
     );
   }
 
-  const customersData = customers?.data?.customers || [];
+  const customersData = customers?.data?.data?.customers || [];
 
   // Helper functions
   const resetForm = () => {
@@ -112,6 +147,7 @@ const Customers: React.FC = () => {
   };
 
   const handleAddCustomer = () => {
+    console.log('Add customer button clicked');
     resetForm();
     setShowModal(true);
   };
@@ -139,12 +175,17 @@ const Customers: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
+    console.log('Current customers before mutation:', customersData);
+    
     if (editingCustomer) {
+      console.log('Updating customer:', editingCustomer.id);
       updateCustomerMutation.mutate({
         id: editingCustomer.id,
         data: formData,
       });
     } else {
+      console.log('Creating new customer');
       createCustomerMutation.mutate(formData);
     }
   };
@@ -155,6 +196,11 @@ const Customers: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // Search input handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
   return (
@@ -182,11 +228,13 @@ const Customers: React.FC = () => {
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
+              key="customer-search-input"
               type="text"
               placeholder="Search customers..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+              autoComplete="off"
             />
           </div>
 

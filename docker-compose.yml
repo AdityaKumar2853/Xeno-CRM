@@ -69,12 +69,12 @@ services:
       dockerfile: ../infra/docker/frontend.Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:3001
-                NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
     container_name: mini-crm-frontend
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
-                NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: "your-google-client-id-here"
     ports:
       - "3000:3000"
     depends_on:

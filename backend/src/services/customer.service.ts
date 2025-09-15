@@ -137,21 +137,21 @@ export class CustomerService {
       // Apply filters
       if (filters.search) {
         where.OR = [
-          { name: { contains: filters.search, mode: 'insensitive' } },
-          { email: { contains: filters.search, mode: 'insensitive' } },
+          { name: { contains: filters.search } },
+          { email: { contains: filters.search } },
         ];
       }
 
       if (filters.city) {
-        where.city = { contains: filters.city, mode: 'insensitive' };
+        where.city = { contains: filters.city };
       }
 
       if (filters.state) {
-        where.state = { contains: filters.state, mode: 'insensitive' };
+        where.state = { contains: filters.state };
       }
 
       if (filters.country) {
-        where.country = { contains: filters.country, mode: 'insensitive' };
+        where.country = { contains: filters.country };
       }
 
       if (filters.minSpent !== undefined || filters.maxSpent !== undefined) {
@@ -275,22 +275,22 @@ export class CustomerService {
         prisma.customer.count(),
         prisma.customer.aggregate({
           _sum: { totalSpent: true },
-        }),
+        }).catch(() => ({ _sum: { totalSpent: null } })),
         prisma.customer.aggregate({
           _avg: { totalSpent: true },
-        }),
+        }).catch(() => ({ _avg: { totalSpent: null } })),
         prisma.customer.groupBy({
           by: ['city'],
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },
           take: 10,
-        }),
+        }).catch(() => []),
         prisma.customer.groupBy({
           by: ['country'],
           _count: { id: true },
           orderBy: { _count: { id: 'desc' } },
           take: 10,
-        }),
+        }).catch(() => []),
         prisma.customer.findMany({
           take: 5,
           orderBy: { createdAt: 'desc' },
@@ -300,7 +300,7 @@ export class CustomerService {
             email: true,
             createdAt: true,
           },
-        }),
+        }).catch(() => []),
       ]);
 
       const stats = {

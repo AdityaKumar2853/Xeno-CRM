@@ -1,19 +1,20 @@
 import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
+import { useState } from 'react';
 import '@/styles/globals.css';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 export default function App({ Component, pageProps }: AppProps) {
+  // Create a client only once
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <QueryClientProvider client={queryClient}>
       <Component {...pageProps} />

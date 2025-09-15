@@ -97,8 +97,8 @@ export class SegmentService {
 
       if (search) {
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { name: { contains: search } },
+          { description: { contains: search } },
         ];
       }
 

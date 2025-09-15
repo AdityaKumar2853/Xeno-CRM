@@ -127,9 +127,9 @@ export class OrderService {
       // Apply search filter
       if (search) {
         where.OR = [
-          { orderNumber: { contains: search, mode: 'insensitive' } },
-          { customer: { name: { contains: search, mode: 'insensitive' } } },
-          { customer: { email: { contains: search, mode: 'insensitive' } } },
+          { orderNumber: { contains: search } },
+          { customer: { name: { contains: search } } },
+          { customer: { email: { contains: search } } },
         ];
       }
 

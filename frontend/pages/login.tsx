@@ -22,8 +22,13 @@ const Login: React.FC = () => {
   useEffect(() => {
     const initGoogle = async () => {
       try {
-        // Check if we're on the login page
+        // Check if we're on the login page and not already initialized
         if (typeof window === 'undefined' || window.location.pathname !== '/login') {
+          return;
+        }
+
+        // Check if Google is already loaded
+        if ((window as any).google && (window as any).google.accounts) {
           return;
         }
 
@@ -86,8 +91,8 @@ const Login: React.FC = () => {
       }
     };
 
-    initGoogle();
-  }, []);
+            initGoogle();
+          }, []);
 
   const handleGoogleLogin = async (credential: string) => {
     try {

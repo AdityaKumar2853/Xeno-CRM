@@ -1,36 +1,55 @@
 import { useState, useEffect, useCallback } from 'react';
-import { authUtils, User } from '@/lib/auth';
+import { authUtils, User, AuthState } from '@/lib/auth';
 import { useRouter } from 'next/router';
 
 export const useAuth = () => {
-  const [authState, setAuthState] = useState(() => {
-    // Initialize with safe defaults
-    if (typeof window === 'undefined') {
-      return {
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-      };
-    }
-    return authUtils.getAuthData();
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: true, // Start with loading true to prevent hydration mismatch
   });
   const router = useRouter();
 
-  // Initialize auth state
+  // Initialize auth state on client side
   useEffect(() => {
     const initAuth = async () => {
-      if (authState.isAuthenticated) {
-        // Skip token verification for test tokens
-        if (authState.token === 'test-token-123') {
-          console.log('Test token detected, skipping verification');
-          return;
-        }
+      // Only run on client side
+      if (typeof window === 'undefined') return;
+      
+      try {
+        // Get auth data from localStorage
+        const authData = authUtils.getAuthData();
         
-        // Verify token is still valid
-        try {
-          const isValid = await authUtils.verifyToken();
-          if (!isValid) {
+        if (authData.isAuthenticated) {
+          // Skip token verification for test tokens
+          if (authData.token === 'test-token-123') {
+            console.log('Test token detected, skipping verification');
+            setAuthState({
+              ...authData,
+              isLoading: false,
+            });
+            return;
+          }
+          
+          // Verify token is still valid
+          try {
+            const isValid = await authUtils.verifyToken();
+            if (!isValid) {
+              setAuthState({
+                user: null,
+                token: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            } else {
+              setAuthState({
+                ...authData,
+                isLoading: false,
+              });
+            }
+          } catch (error) {
+            console.error('Token verification failed:', error);
             setAuthState({
               user: null,
               token: null,
@@ -38,20 +57,25 @@ export const useAuth = () => {
               isLoading: false,
             });
           }
-        } catch (error) {
-          console.error('Token verification failed:', error);
+        } else {
           setAuthState({
-            user: null,
-            token: null,
-            isAuthenticated: false,
+            ...authData,
             isLoading: false,
           });
         }
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
     };
 
     initAuth();
-  }, [authState.isAuthenticated, authState.token]);
+  }, []);
 
   // Google login
   const googleLogin = useCallback(async (googleToken: string) => {

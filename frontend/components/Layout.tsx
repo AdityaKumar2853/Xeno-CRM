@@ -125,7 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="relative">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    {user?.avatar ? (
+                    {user && user.avatar ? (
                       <img
                         className="h-8 w-8 rounded-full"
                         src={user.avatar}
