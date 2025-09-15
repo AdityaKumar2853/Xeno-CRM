@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { chatbotTrainingData } from './training-data';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -23,7 +24,16 @@ export default async function handler(req, res) {
     try {
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       
-      const prompt = `You are an AI assistant for a CRM system. Help the user with customer insights, data analysis, content generation, and answer questions about their CRM. Be helpful, professional, and concise.
+      // Create a comprehensive system prompt with training data
+      const trainingContext = chatbotTrainingData.map(qa => 
+        `Q: ${qa.messages[0].content}\nA: ${qa.messages[1].content}`
+      ).join('\n\n');
+      
+      const prompt = `You are an AI assistant for a comprehensive CRM system. Use the following Q&A examples to provide accurate, helpful responses about the CRM functionality:
+
+${trainingContext}
+
+Based on the above examples, provide a helpful, professional, and concise response to the user's question. If the question is about specific features not covered above, use your knowledge to provide relevant guidance about CRM best practices.
 
 User message: ${message}`;
 
