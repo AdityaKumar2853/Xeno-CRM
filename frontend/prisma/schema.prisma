@@ -19,10 +19,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  segments     Segment[]
-  campaigns    Campaign[]
-
   @@map("users")
 }
 
@@ -69,9 +65,6 @@ model Segment {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  // Relations
-  campaigns Campaign[]
-
   @@map("segments")
 }
 
@@ -85,9 +78,6 @@ model Campaign {
   openRate    Float    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relations
-  segment Segment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
 
   @@map("campaigns")
 }
