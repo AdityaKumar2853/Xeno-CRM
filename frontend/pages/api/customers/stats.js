@@ -31,7 +31,7 @@ export default async function handler(req, res) {
           data: {
             totalCustomers,
             totalOrders,
-            totalRevenue: totalRevenue._sum.amount || 0,
+            totalRevenue: totalRevenue._sum.totalAmount || 0,
             recentCustomers,
           },
         });
