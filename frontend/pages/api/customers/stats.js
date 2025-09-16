@@ -26,6 +26,15 @@ export default async function handler(req, res) {
           }),
         ]);
 
+        // Debug logging
+        console.log('Customer stats debug:', {
+          totalCustomers,
+          totalOrders,
+          totalRevenue,
+          totalRevenueSum: totalRevenue._sum,
+          totalRevenueTotalAmount: totalRevenue._sum.totalAmount
+        });
+
         res.status(200).json({
           success: true,
           data: {
